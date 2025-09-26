@@ -9,6 +9,7 @@ const navigation = [
   { name: "Home", href: "/" },
   { name: "Marketplace", href: "/marketplace" },
   { name: "Itinerary Planner", href: "/itinerary" },
+  { name: "AR Maps", href: "/ar-map" },
   { name: "Events", href: "/events" },
 ];
 

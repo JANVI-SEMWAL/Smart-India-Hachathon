@@ -11,6 +11,7 @@ import Events from "./pages/Events";
 import Safety from "./pages/Safety";
 import Journal from "./pages/Journal";
 import Login from "./pages/Login";
+import ARMap from "./pages/ARMap";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/events" element={<Events />} />
           <Route path="/safety" element={<Safety />} />
           <Route path="/journal" element={<Journal />} />
+          <Route path="/ar-map" element={<ARMap />} />
           <Route path="/login" element={<Login />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

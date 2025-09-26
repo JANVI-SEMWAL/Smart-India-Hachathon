@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import Layout from "@/components/layout/Layout";
+import { Link } from "react-router-dom";
 import { 
   MapPin, 
   Calendar, 
@@ -266,6 +267,11 @@ const Itinerary = () => {
                   <p className="text-primary-foreground/90">{sampleItinerary.subtitle}</p>
                 </div>
                 <div className="mt-4 md:mt-0 flex space-x-2">
+                  <Link to="/ar-map">
+                    <Button variant="outline" size="sm" className="bg-white text-primary hover:bg-gray-50">
+                      <MapPin className="mr-2 h-4 w-4" /> AR Maps
+                    </Button>
+                  </Link>
                   <Button variant="outline" size="sm" className="bg-white text-primary hover:bg-gray-50">
                     <Download className="mr-2 h-4 w-4" /> Download
                   </Button>
