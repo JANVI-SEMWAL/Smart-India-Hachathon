@@ -1,27 +1,172 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import Layout from "@/components/layout/Layout";
 import { 
   Mail, 
   Lock, 
   Eye, 
   EyeOff, 
-  Facebook, 
+  Facebook,
   Github,
+  Phone,
+  User2,
+  Store,
+  ShieldCheck,
   Compass,
   ArrowRight,
+  Loader2,
   CheckCircle
 } from "lucide-react";
+import {
+  registerTourist,
+  registerArtisan,
+  registerAdmin,
+  sendEmailOtp,
+  sendPhoneOtp,
+  verifyEmailOtp,
+  verifyPhoneOtp,
+  loginUser,
+} from "@/lib/mockApi";
+
+type Role = "tourist" | "artisan" | "admin";
+
+const otpDurationSec = 30;
 
 const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const [activeRole, setActiveRole] = useState<Role>("tourist");
   const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const canResend = useMemo(() => secondsLeft <= 0, [secondsLeft]);
+
+  const [touristForm, setTouristForm] = useState({ fullName: "", email: "", phone: "", password: "" });
+  const [artisanForm, setArtisanForm] = useState({
+    fullName: "",
+    businessName: "",
+    email: "",
+    phone: "",
+    address: "",
+    governmentId: "",
+    password: "",
+  });
+  const [adminForm, setAdminForm] = useState({ fullName: "", email: "", phone: "", employeeId: "", password: "" });
+  const [loginForm, setLoginForm] = useState({ identifier: "", password: "" });
+
+  useEffect(() => {
+    if (!otpSent) return;
+    setSecondsLeft(otpDurationSec);
+  }, [otpSent]);
+
+  useEffect(() => {
+    if (secondsLeft <= 0) return;
+    const t = setInterval(() => setSecondsLeft((s) => s - 1), 1000);
+    return () => clearInterval(t);
+  }, [secondsLeft]);
+
+  const passwordValid = (pwd: string) => /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(pwd);
+
+  const handleSendOtp = async () => {
+    setLoading(true);
+    try {
+      if (activeRole === "tourist") {
+        if (!touristForm.email) throw new Error("Email is required");
+        const res = await sendEmailOtp(touristForm.email);
+        if (res.success) {
+          setOtpSent(true);
+          if (res.code) alert(`DEV OTP (email): ${res.code}`);
+        }
+      } else if (activeRole === "artisan") {
+        if (!artisanForm.phone) throw new Error("Phone is required");
+        const res = await sendPhoneOtp(artisanForm.phone);
+        if (res.success) {
+          setOtpSent(true);
+          if (res.code) alert(`DEV OTP (phone): ${res.code}`);
+        }
+      } else {
+        if (!adminForm.email) throw new Error("Official email is required");
+        const res = await sendEmailOtp(adminForm.email);
+        if (res.success) {
+          setOtpSent(true);
+          if (res.code) alert(`DEV OTP (email): ${res.code}`);
+        }
+      }
+    } catch (e: any) {
+      alert(e.message ?? "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtpAndSignup = async () => {
+    setLoading(true);
+    try {
+      if (activeRole === "tourist") {
+        if (!passwordValid(touristForm.password)) throw new Error("Password must be 8+ chars with letters and numbers");
+        const verified = await verifyEmailOtp(touristForm.email, otpCode);
+        if (!verified.success) throw new Error("Invalid OTP");
+        const res = await registerTourist(touristForm);
+        if (!res.success) throw new Error(res.message || "Registration failed");
+        alert("Signup successful! You can now log in.");
+        setIsLogin(true);
+        setOtpSent(false);
+        setOtpCode("");
+      } else if (activeRole === "artisan") {
+        if (!passwordValid(artisanForm.password)) throw new Error("Password must be 8+ chars with letters and numbers");
+        const verified = await verifyPhoneOtp(artisanForm.phone, otpCode);
+        if (!verified.success) throw new Error("Invalid OTP");
+        const res = await registerArtisan(artisanForm);
+        if (!res.success) throw new Error(res.message || "Registration failed");
+        alert("Phone verified. Waiting for admin approval.");
+        setIsLogin(true);
+        setOtpSent(false);
+        setOtpCode("");
+      } else {
+        if (!passwordValid(adminForm.password)) throw new Error("Password must be 8+ chars with letters and numbers");
+        const verified = await verifyEmailOtp(adminForm.email, otpCode);
+        if (!verified.success) throw new Error("Invalid OTP");
+        const res = await registerAdmin(adminForm);
+        if (!res.success) throw new Error(res.message || "Registration failed");
+        alert("Admin email verified. Account created.");
+        setIsLogin(true);
+        setOtpSent(false);
+        setOtpCode("");
+      }
+    } catch (e: any) {
+      alert(e.message ?? "Verification failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    setLoading(true);
+    try {
+      const res = await loginUser(loginForm.identifier, loginForm.password);
+      if (!res.success) throw new Error(res.message || "Login failed");
+      localStorage.setItem(
+        "auth_user",
+        JSON.stringify({ role: res.role, fullName: res.fullName, email: res.email, phone: res.phone })
+      );
+      navigate("/");
+    } catch (e: any) {
+      alert(e.message ?? "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const benefits = [
     "Create personalized travel itineraries",
@@ -109,93 +254,305 @@ const Login = () => {
                   </p>
                 </div>
                 
-                <form className="space-y-6">
-                  {!isLogin && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name</Label>
-                        <Input id="firstName" placeholder="John" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name</Label>
-                        <Input id="lastName" placeholder="Doe" />
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input 
-                        id="email" 
-                        type="email" 
-                        placeholder="your@email.com"
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label htmlFor="password">Password</Label>
-                      {isLogin && (
-                        <Button variant="link" className="p-0 h-auto text-sm">
-                          Forgot password?
+                <div className="space-y-6">
+                  <Tabs value={activeRole} onValueChange={(v) => setActiveRole(v as Role)}>
+                    <TabsList className="w-full grid grid-cols-3">
+                      <TabsTrigger value="tourist" className={activeRole === "tourist" ? "text-primary" : ""}>
+                        <User2 className="h-4 w-4 mr-2" /> Tourist
+                      </TabsTrigger>
+                      <TabsTrigger value="artisan" className={activeRole === "artisan" ? "text-primary" : ""}>
+                        <Store className="h-4 w-4 mr-2" /> Artisan
+                      </TabsTrigger>
+                      <TabsTrigger value="admin" className={activeRole === "admin" ? "text-primary" : ""}>
+                        <ShieldCheck className="h-4 w-4 mr-2" /> Admin
+                      </TabsTrigger>
+                    </TabsList>
+
+                    {isLogin && (
+                      <div className="space-y-4 mt-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="identifier">Email or Phone</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                            <Input
+                              id="identifier"
+                              placeholder="name@email.com or 98765xxxxx"
+                              className="pl-10"
+                              value={loginForm.identifier}
+                              onChange={(e) => setLoginForm({ ...loginForm, identifier: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <Label htmlFor="password">Password</Label>
+                          </div>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                            <Input
+                              id="password"
+                              type={showPassword ? "text" : "password"}
+                              placeholder="••••••••"
+                              className="pl-10 pr-10"
+                              value={loginForm.password}
+                              onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-0 top-0 h-full"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox id="remember" />
+                          <Label htmlFor="remember" className="text-sm">Remember me</Label>
+                        </div>
+                        <Button variant="cultural" size="lg" className="w-full" onClick={handleLogin} disabled={loading}>
+                          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign In"}
+                          <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
-                      )}
-                    </div>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input 
-                        id="password" 
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        className="pl-10 pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {!isLogin && (
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                        <Input 
-                          id="confirmPassword" 
-                          type="password"
-                          placeholder="••••••••"
-                          className="pl-10"
-                        />
                       </div>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="remember" />
-                    <Label htmlFor="remember" className="text-sm">
-                      {isLogin ? "Remember me" : "I agree to the Terms & Conditions"}
-                    </Label>
-                  </div>
-                  
-                  <Button variant="cultural" size="lg" className="w-full">
-                    {isLogin ? "Sign In" : "Create Account"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </form>
+                    )}
+
+                    {!isLogin && (
+                      <TabsContent value={activeRole} className="mt-4">
+                        {activeRole === "tourist" && (
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label>Full Name</Label>
+                              <Input
+                                placeholder="John Doe"
+                                value={touristForm.fullName}
+                                onChange={(e) => setTouristForm({ ...touristForm, fullName: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Email (required)</Label>
+                              <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                <Input
+                                  type="email"
+                                  placeholder="name@email.com"
+                                  className="pl-10"
+                                  value={touristForm.email}
+                                  onChange={(e) => setTouristForm({ ...touristForm, email: e.target.value })}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Phone (optional)</Label>
+                              <Input
+                                placeholder="98765xxxxx"
+                                value={touristForm.phone}
+                                onChange={(e) => setTouristForm({ ...touristForm, phone: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Password</Label>
+                              <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                <Input
+                                  type={showPassword ? "text" : "password"}
+                                  placeholder="8+ chars, letters & numbers"
+                                  className="pl-10 pr-10"
+                                  value={touristForm.password}
+                                  onChange={(e) => setTouristForm({ ...touristForm, password: e.target.value })}
+                                />
+                                <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full" onClick={() => setShowPassword(!showPassword)}>
+                                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                              </div>
+                            </div>
+
+                            {!otpSent ? (
+                              <Button onClick={handleSendOtp} disabled={loading || !touristForm.email || !passwordValid(touristForm.password)} className="w-full" variant="cultural">
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Email OTP"}
+                              </Button>
+                            ) : (
+                              <div className="space-y-3">
+                                <Label>Enter 6-digit OTP sent to email</Label>
+                                <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
+                                  <InputOTPGroup>
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                      <InputOTPSlot key={i} index={i} />
+                                    ))}
+                                  </InputOTPGroup>
+                                </InputOTP>
+                                <div className="flex items-center justify-between">
+                                  <Button variant="outline" type="button" disabled={!canResend} onClick={handleSendOtp}>
+                                    Resend OTP {canResend ? "" : `in ${secondsLeft}s`}
+                                  </Button>
+                                  <Button variant="cultural" onClick={handleVerifyOtpAndSignup} disabled={loading || otpCode.length !== 6}>
+                                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify & Create Account"}
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {activeRole === "artisan" && (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label>Full Name</Label>
+                                <Input value={artisanForm.fullName} onChange={(e) => setArtisanForm({ ...artisanForm, fullName: e.target.value })} />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Business Name</Label>
+                                <Input value={artisanForm.businessName} onChange={(e) => setArtisanForm({ ...artisanForm, businessName: e.target.value })} />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label>Email</Label>
+                                <div className="relative">
+                                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                  <Input type="email" className="pl-10" value={artisanForm.email} onChange={(e) => setArtisanForm({ ...artisanForm, email: e.target.value })} />
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Phone</Label>
+                                <div className="relative">
+                                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                  <Input className="pl-10" value={artisanForm.phone} onChange={(e) => setArtisanForm({ ...artisanForm, phone: e.target.value })} />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Address / Location</Label>
+                              <Input value={artisanForm.address} onChange={(e) => setArtisanForm({ ...artisanForm, address: e.target.value })} />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Government ID / Registration Number</Label>
+                              <Input value={artisanForm.governmentId} onChange={(e) => setArtisanForm({ ...artisanForm, governmentId: e.target.value })} />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Password</Label>
+                              <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                <Input
+                                  type={showPassword ? "text" : "password"}
+                                  placeholder="8+ chars, letters & numbers"
+                                  className="pl-10 pr-10"
+                                  value={artisanForm.password}
+                                  onChange={(e) => setArtisanForm({ ...artisanForm, password: e.target.value })}
+                                />
+                                <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full" onClick={() => setShowPassword(!showPassword)}>
+                                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                              </div>
+                            </div>
+
+                            {!otpSent ? (
+                              <Button onClick={handleSendOtp} disabled={loading || !artisanForm.phone || !passwordValid(artisanForm.password)} className="w-full" variant="cultural">
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Phone OTP"}
+                              </Button>
+                            ) : (
+                              <div className="space-y-3">
+                                <Label>Enter 6-digit OTP sent to phone</Label>
+                                <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
+                                  <InputOTPGroup>
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                      <InputOTPSlot key={i} index={i} />
+                                    ))}
+                                  </InputOTPGroup>
+                                </InputOTP>
+                                <div className="flex items-center justify-between">
+                                  <Button variant="outline" type="button" disabled={!canResend} onClick={handleSendOtp}>
+                                    Resend OTP {canResend ? "" : `in ${secondsLeft}s`}
+                                  </Button>
+                                  <Button variant="cultural" onClick={handleVerifyOtpAndSignup} disabled={loading || otpCode.length !== 6}>
+                                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify & Submit (Admin Approval)"}
+                                  </Button>
+                                </div>
+                                <p className="text-sm text-muted-foreground">After verification, you'll see "Waiting for admin approval."</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {activeRole === "admin" && (
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label>Full Name</Label>
+                              <Input value={adminForm.fullName} onChange={(e) => setAdminForm({ ...adminForm, fullName: e.target.value })} />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label>Official Email</Label>
+                                <div className="relative">
+                                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                  <Input type="email" className="pl-10" value={adminForm.email} onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })} />
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Phone (optional)</Label>
+                                <Input value={adminForm.phone} onChange={(e) => setAdminForm({ ...adminForm, phone: e.target.value })} />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label>Employee ID</Label>
+                                <Input value={adminForm.employeeId} onChange={(e) => setAdminForm({ ...adminForm, employeeId: e.target.value })} />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Password</Label>
+                                <div className="relative">
+                                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                  <Input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="8+ chars, letters & numbers"
+                                    className="pl-10 pr-10"
+                                    value={adminForm.password}
+                                    onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
+                                  />
+                                  <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full" onClick={() => setShowPassword(!showPassword)}>
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+
+                            {!otpSent ? (
+                              <Button onClick={handleSendOtp} disabled={loading || !adminForm.email || !passwordValid(adminForm.password)} className="w-full" variant="cultural">
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Email Verification"}
+                              </Button>
+                            ) : (
+                              <div className="space-y-3">
+                                <Label>Enter 6-digit OTP sent to official email</Label>
+                                <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
+                                  <InputOTPGroup>
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                      <InputOTPSlot key={i} index={i} />
+                                    ))}
+                                  </InputOTPGroup>
+                                </InputOTP>
+                                <div className="flex items-center justify-between">
+                                  <Button variant="outline" type="button" disabled={!canResend} onClick={handleSendOtp}>
+                                    Resend OTP {canResend ? "" : `in ${secondsLeft}s`}
+                                  </Button>
+                                  <Button variant="cultural" onClick={handleVerifyOtpAndSignup} disabled={loading || otpCode.length !== 6}>
+                                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify & Create Admin"}
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </TabsContent>
+                    )}
+                  </Tabs>
+                </div>
                 
                 <div className="mt-6">
                   <div className="relative">
@@ -210,13 +567,11 @@ const Login = () => {
                   </div>
                   
                   <div className="mt-6 grid grid-cols-2 gap-3">
-                    <Button variant="outline">
-                      <Facebook className="h-4 w-4 mr-2" />
-                      Facebook
+                    <Button variant="outline" disabled>
+                      LinkedIn
                     </Button>
-                    <Button variant="outline">
-                      <Github className="h-4 w-4 mr-2" />
-                      Google
+                    <Button variant="outline" disabled>
+                      Facebook
                     </Button>
                   </div>
                 </div>
@@ -227,7 +582,7 @@ const Login = () => {
                     <Button 
                       variant="link" 
                       className="p-0 h-auto font-medium"
-                      onClick={() => setIsLogin(!isLogin)}
+                      onClick={() => { setIsLogin(!isLogin); setOtpSent(false); setOtpCode(""); }}
                     >
                       {isLogin ? "Sign up" : "Sign in"}
                     </Button>

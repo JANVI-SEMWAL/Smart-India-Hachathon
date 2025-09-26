@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Compass, Menu, User, AlertTriangle } from "lucide-react";
+import { Compass, Menu, User, AlertTriangle, LogOut, UserCircle2, NotebookPen, Settings } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -15,6 +16,19 @@ const navigation = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const [authUser, setAuthUser] = useState<{ fullName?: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("auth_user");
+      setAuthUser(raw ? JSON.parse(raw) : null);
+    } catch {}
+  }, [location.pathname]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("auth_user");
+    setAuthUser(null);
+  };
 
   const isActivePath = (path: string) => {
     return location.pathname === path;
@@ -56,7 +70,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Desktop Actions: Search | SOS | Login */}
+          {/* Desktop Actions: Search | SOS | Login/User */}
           <div className="hidden md:flex md:items-center md:space-x-4">
             <div className="w-64">
               <Input placeholder="Search" className="w-full" />
@@ -67,12 +81,46 @@ export default function Navbar() {
                 SOS
               </Button>
             </Link>
-            <Link to="/login">
-              <Button variant="outline">
-                <User className="h-4 w-4" />
-                Login
-              </Button>
-            </Link>
+            {authUser ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <User className="h-4 w-4" />
+                    {authUser.fullName || "Account"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <Link to="/journal">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <NotebookPen className="h-4 w-4 mr-2" />
+                      Travel Journal
+                    </DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <UserCircle2 className="h-4 w-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/login">
+                <Button variant="outline">
+                  <User className="h-4 w-4" />
+                  Login
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -129,12 +177,27 @@ export default function Navbar() {
                         SOS
                       </Button>
                     </Link>
-                    <Link to="/login" onClick={() => setIsOpen(false)}>
-                      <Button className="w-full justify-start">
-                        <User className="h-4 w-4 mr-2" />
-                        Login
-                      </Button>
-                    </Link>
+                    {authUser ? (
+                      <>
+                        <Link to="/journal" onClick={() => setIsOpen(false)}>
+                          <Button className="w-full justify-start" variant="outline">
+                            <NotebookPen className="h-4 w-4 mr-2" />
+                            Travel Journal
+                          </Button>
+                        </Link>
+                        <Button className="w-full justify-start" variant="ghost" onClick={() => { handleLogout(); setIsOpen(false); }}>
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Logout
+                        </Button>
+                      </>
+                    ) : (
+                      <Link to="/login" onClick={() => setIsOpen(false)}>
+                        <Button className="w-full justify-start">
+                          <User className="h-4 w-4 mr-2" />
+                          Login
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 </div>
               </SheetContent>
