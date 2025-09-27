@@ -59,7 +59,7 @@ const Login = () => {
     email: "",
     phone: "",
     address: "",
-    governmentId: "",
+    aadharNumber: "",
     password: "",
   });
   const [adminForm, setAdminForm] = useState({ fullName: "", email: "", phone: "", employeeId: "", password: "" });
@@ -433,8 +433,16 @@ const Login = () => {
                               <Input value={artisanForm.address} onChange={(e) => setArtisanForm({ ...artisanForm, address: e.target.value })} />
                             </div>
                             <div className="space-y-2">
-                              <Label>Government ID / Registration Number</Label>
-                              <Input value={artisanForm.governmentId} onChange={(e) => setArtisanForm({ ...artisanForm, governmentId: e.target.value })} />
+                              <Label>Aadhar Number (Required for Artisan Registration)</Label>
+                              <Input 
+                                placeholder="1234 5678 9012" 
+                                value={artisanForm.aadharNumber} 
+                                onChange={(e) => setArtisanForm({ ...artisanForm, aadharNumber: e.target.value })} 
+                                maxLength={14}
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Aadhar verification is required for artisan registration to ensure authenticity
+                              </p>
                             </div>
                             <div className="space-y-2">
                               <Label>Password</Label>
@@ -454,8 +462,8 @@ const Login = () => {
                             </div>
 
                             {!otpSent ? (
-                              <Button onClick={handleSendOtp} disabled={loading || !artisanForm.phone || !passwordValid(artisanForm.password)} className="w-full" variant="cultural">
-                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Phone OTP"}
+                              <Button onClick={handleSendOtp} disabled={loading || !artisanForm.phone || !passwordValid(artisanForm.password) || !artisanForm.aadharNumber} className="w-full" variant="cultural">
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Phone OTP (Aadhar Verified)"}
                               </Button>
                             ) : (
                               <div className="space-y-3">

@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Compass, Menu, User, AlertTriangle, LogOut, UserCircle2, NotebookPen, Settings } from "lucide-react";
+import { Compass, Menu, User, AlertTriangle, LogOut, UserCircle2, NotebookPen, Settings, Mail, Phone, MapPin, Calendar, Shield } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const navigation = [
@@ -11,12 +11,21 @@ const navigation = [
   { name: "Marketplace", href: "/marketplace" },
   { name: "Itinerary Planner", href: "/itinerary" },
   { name: "Events", href: "/events" },
+  { name: "Recommendations", href: "/recommendations" },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const [authUser, setAuthUser] = useState<{ fullName?: string } | null>(null);
+  const [authUser, setAuthUser] = useState<{ 
+    fullName?: string; 
+    email?: string; 
+    phone?: string; 
+    role?: string; 
+    joinDate?: string;
+    location?: string;
+    profileImage?: string;
+  } | null>(null);
 
   useEffect(() => {
     try {
@@ -84,33 +93,59 @@ export default function Navbar() {
             {authUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
+                  <Button variant="outline" className="bg-gradient-to-r from-primary/10 to-cultural-orange/10 border-primary/20 hover:from-primary/20 hover:to-cultural-orange/20">
                     <User className="h-4 w-4" />
                     {authUser.fullName || "Account"}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-64 p-0 bg-background border-border shadow-2xl">
+                  {/* User Profile Header */}
+                  <div className="bg-gradient-to-r from-primary to-cultural-orange p-4 text-white">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                        {authUser.profileImage ? (
+                          <img src={authUser.profileImage} alt="Profile" className="w-12 h-12 rounded-full object-cover" />
+                        ) : (
+                          <UserCircle2 className="h-8 w-8 text-white" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold">{authUser.fullName || "User"}</h3>
+                        <p className="text-white/80 text-sm">{authUser.email || "user@example.com"}</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <DropdownMenuSeparator />
-                  <Link to="/journal">
-                    <DropdownMenuItem className="cursor-pointer">
-                      <NotebookPen className="h-4 w-4 mr-2" />
-                      Travel Journal
+
+                  {/* Quick Actions */}
+                  <div className="p-2">
+                    <Link to="/journal">
+                      <DropdownMenuItem className="cursor-pointer hover:bg-accent rounded-lg p-3 text-foreground">
+                        <NotebookPen className="h-4 w-4 mr-3 text-primary" />
+                        Travel Journal
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link to="/profile">
+                      <DropdownMenuItem className="cursor-pointer hover:bg-accent rounded-lg p-3 text-foreground">
+                        <UserCircle2 className="h-4 w-4 mr-3 text-primary" />
+                        Profile
+                      </DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuItem className="cursor-pointer hover:bg-accent rounded-lg p-3 text-foreground">
+                      <Settings className="h-4 w-4 mr-3 text-primary" />
+                      Settings
                     </DropdownMenuItem>
-                  </Link>
-                  <DropdownMenuItem className="cursor-pointer">
-                    <UserCircle2 className="h-4 w-4 mr-2" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
-                  </DropdownMenuItem>
+                  </div>
+
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
+
+                  <div className="p-2">
+                    <DropdownMenuItem className="cursor-pointer hover:bg-red-50 rounded-lg p-3 text-red-600 hover:text-red-700" onClick={handleLogout}>
+                      <LogOut className="h-4 w-4 mr-3" />
+                      Logout
+                    </DropdownMenuItem>
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (

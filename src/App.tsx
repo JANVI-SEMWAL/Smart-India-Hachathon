@@ -11,6 +11,9 @@ import Events from "./pages/Events";
 import Safety from "./pages/Safety";
 import Journal from "./pages/Journal";
 import Login from "./pages/Login";
+import Recommendations from "./pages/Recommendations";
+import Profile from "./pages/Profile";
+import TestPage from "./pages/TestPage";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 
@@ -28,10 +31,13 @@ const App = () => (
           <Route path="/cultural-insights" element={<CulturalInsights />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/recommendations" element={<Recommendations />} />
           <Route path="/safety" element={<Safety />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/test" element={<TestPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
