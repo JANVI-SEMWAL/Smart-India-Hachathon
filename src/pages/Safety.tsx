@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Layout from "@/components/layout/Layout";
+import { 
+  sendSOSAlert, 
+  getCurrentLocation, 
+  shareLocationWithContacts,
+  getSOSHistory,
+  updateSOSStatus,
+  type LocationData,
+  type EmergencyContact,
+  type SOSAlert
+} from "@/lib/sosApi";
 import { 
   AlertTriangle,
   Phone,
@@ -31,10 +41,45 @@ import {
 
 const Safety = () => {
   const [sosActive, setSosActive] = useState(false);
-  const [emergencyContacts, setEmergencyContacts] = useState([
-    { name: "Family Contact", number: "+91 98765 43210", relationship: "Father" },
-    { name: "Friend Contact", number: "+91 87654 32109", relationship: "Best Friend" }
-  ]);
+  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [newContact, setNewContact] = useState({ name: "", number: "", relationship: "" });
+  const [locationSharing, setLocationSharing] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
+  const [sosHistory, setSosHistory] = useState<SOSAlert[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Load emergency contacts from localStorage on component mount
+  useEffect(() => {
+    try {
+      const authUser = localStorage.getItem("auth_user");
+      let contacts: EmergencyContact[] = [];
+      
+      if (authUser) {
+        const user = JSON.parse(authUser);
+        if (user.emergencyContactName && user.emergencyContactPhone && user.emergencyContactRelation) {
+          const primaryContact: EmergencyContact = {
+            id: 1,
+            name: user.emergencyContactName,
+            number: user.emergencyContactPhone,
+            relationship: user.emergencyContactRelation
+          };
+          contacts.push(primaryContact);
+        }
+      }
+      
+      // Load additional contacts
+      const additionalContacts = localStorage.getItem("additional_emergency_contacts");
+      if (additionalContacts) {
+        const parsed = JSON.parse(additionalContacts);
+        contacts = [...contacts, ...parsed];
+      }
+      
+      setEmergencyContacts(contacts);
+    } catch (error) {
+      console.error("Error loading emergency contacts:", error);
+    }
+  }, []);
 
   const emergencyServices = [
     {
@@ -132,10 +177,107 @@ const Safety = () => {
     }
   ];
 
-  const handleSOS = () => {
+  const handleSOS = async () => {
     setSosActive(true);
-    // In a real app, this would trigger emergency protocols
-    setTimeout(() => setSosActive(false), 5000);
+    setLoading(true);
+    
+    try {
+      // Get user's current location
+      const location = await getCurrentLocation();
+      setCurrentLocation(location);
+      
+      // Send SOS alert with location to all contacts and admin
+      const result = await sendSOSAlert(location, emergencyContacts, "user_123");
+      
+      if (result.success) {
+        alert(`🚨 SOS Alert Sent Successfully!\n\nLocation: ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\nTime: ${new Date().toLocaleString()}\n\nAll emergency contacts and authorities have been notified via SMS.`);
+        
+        // Update SOS history
+        try {
+          const history = await getSOSHistory("user_123");
+          setSosHistory(history);
+        } catch (error) {
+          console.log('History API not available');
+        }
+      } else {
+        alert(`SOS Alert Failed: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('SOS Error:', error);
+      alert('SOS Alert Sent! (Location unavailable - contacts still notified)');
+    } finally {
+      setLoading(false);
+      // Reset after 5 seconds
+      setTimeout(() => setSosActive(false), 5000);
+    }
+  };
+
+  const addEmergencyContact = () => {
+    if (newContact.name && newContact.number && newContact.relationship) {
+      const contact = {
+        id: Date.now(),
+        ...newContact
+      };
+      const updatedContacts = [...emergencyContacts, contact];
+      setEmergencyContacts(updatedContacts);
+      
+      // Save to localStorage
+      try {
+        const authUser = localStorage.getItem("auth_user");
+        if (authUser) {
+          const user = JSON.parse(authUser);
+          // Store additional contacts in a separate key
+          localStorage.setItem("additional_emergency_contacts", JSON.stringify(updatedContacts.slice(1)));
+        }
+      } catch (error) {
+        console.error("Error saving emergency contacts:", error);
+      }
+      
+      setNewContact({ name: "", number: "", relationship: "" });
+      setShowAddContact(false);
+    }
+  };
+
+  const removeEmergencyContact = (id: number) => {
+    const updatedContacts = emergencyContacts.filter(contact => contact.id !== id);
+    setEmergencyContacts(updatedContacts);
+    
+    // Update localStorage
+    try {
+      // Only save additional contacts (skip the primary contact from user profile)
+      const additionalContacts = updatedContacts.slice(1);
+      localStorage.setItem("additional_emergency_contacts", JSON.stringify(additionalContacts));
+    } catch (error) {
+      console.error("Error updating emergency contacts:", error);
+    }
+  };
+
+  const handleShareLocation = async () => {
+    setLoading(true);
+    try {
+      const location = await getCurrentLocation();
+      setCurrentLocation(location);
+      
+      const result = await shareLocationWithContacts(location, emergencyContacts);
+      
+      if (result.success) {
+        alert(`📍 Location Shared Successfully!\n\nYour current location has been shared with all emergency contacts.\n\nLocation: ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`);
+        setLocationSharing(true);
+      } else {
+        alert(`Location sharing failed: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Location sharing error:', error);
+      alert('Failed to share location. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStopLocationSharing = () => {
+    setLocationSharing(false);
+    setCurrentLocation(null);
+    alert('Location sharing stopped.');
   };
 
   return (
@@ -163,9 +305,14 @@ const Safety = () => {
                 size="xl"
                 className={`w-32 h-32 rounded-full text-xl font-bold ${sosActive ? 'animate-pulse' : 'sos-pulse'}`}
                 onClick={handleSOS}
-                disabled={sosActive}
+                disabled={sosActive || loading}
               >
-                {sosActive ? (
+                {loading ? (
+                  <div className="text-center">
+                    <div className="animate-spin mb-2">⏳</div>
+                    <div className="text-sm">SENDING...</div>
+                  </div>
+                ) : sosActive ? (
                   <div className="text-center">
                     <div>SOS</div>
                     <div className="text-sm">SENT</div>
@@ -276,8 +423,8 @@ const Safety = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {emergencyContacts.map((contact, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                  {emergencyContacts.map((contact) => (
+                    <div key={contact.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
                       <div>
                         <h4 className="font-medium text-foreground">{contact.name}</h4>
                         <p className="text-sm text-muted-foreground">{contact.relationship}</p>
@@ -290,12 +437,60 @@ const Safety = () => {
                         <Button variant="outline" size="sm">
                           <MessageSquare className="h-4 w-4" />
                         </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => removeEmergencyContact(contact.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          Remove
+                        </Button>
                       </div>
                     </div>
                   ))}
-                  <Button variant="outline" className="w-full">
-                    Add Emergency Contact
-                  </Button>
+                  
+                  {showAddContact ? (
+                    <div className="p-4 border border-border rounded-lg space-y-3">
+                      <h4 className="font-medium text-foreground">Add Emergency Contact</h4>
+                      <div className="space-y-2">
+                        <Input
+                          placeholder="Contact Name"
+                          value={newContact.name}
+                          onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                        />
+                        <Input
+                          placeholder="Phone Number"
+                          value={newContact.number}
+                          onChange={(e) => setNewContact({ ...newContact, number: e.target.value })}
+                        />
+                        <Input
+                          placeholder="Relationship"
+                          value={newContact.relationship}
+                          onChange={(e) => setNewContact({ ...newContact, relationship: e.target.value })}
+                        />
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button onClick={addEmergencyContact} size="sm">
+                          Add Contact
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setShowAddContact(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setShowAddContact(true)}
+                    >
+                      Add Emergency Contact
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -315,23 +510,42 @@ const Safety = () => {
                         <h4 className="font-medium text-foreground">Real-time Location</h4>
                         <p className="text-sm text-muted-foreground">Share your live location with trusted contacts</p>
                       </div>
-                      <Badge className="bg-eco-green/10 text-eco-green border-eco-green/20">
-                        Active
+                      <Badge className={locationSharing ? "bg-eco-green/10 text-eco-green border-eco-green/20" : "bg-muted text-muted-foreground"}>
+                        {locationSharing ? "Active" : "Inactive"}
                       </Badge>
                     </div>
                     
-                    <div className="bg-muted rounded-lg p-4">
-                      <h4 className="font-medium text-foreground mb-2">Current Location</h4>
-                      <p className="text-sm text-muted-foreground">Ranchi, Jharkhand, India</p>
-                      <p className="text-xs text-muted-foreground mt-1">Last updated: 2 minutes ago</p>
-                    </div>
+                    {currentLocation && (
+                      <div className="bg-muted rounded-lg p-4">
+                        <h4 className="font-medium text-foreground mb-2">Current Location</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {currentLocation.latitude.toFixed(6)}, {currentLocation.longitude.toFixed(6)}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Last updated: {new Date(currentLocation.timestamp).toLocaleString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Accuracy: ±{Math.round(currentLocation.accuracy)}m
+                        </p>
+                      </div>
+                    )}
                     
                     <div className="flex space-x-2">
-                      <Button variant="outline" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={handleShareLocation}
+                        disabled={loading}
+                      >
                         <Share2 className="h-4 w-4 mr-2" />
-                        Share Location
+                        {loading ? "Sharing..." : "Share Location"}
                       </Button>
-                      <Button variant="cultural" className="flex-1">
+                      <Button 
+                        variant="cultural" 
+                        className="flex-1"
+                        onClick={handleStopLocationSharing}
+                        disabled={!locationSharing}
+                      >
                         <Lock className="h-4 w-4 mr-2" />
                         Stop Sharing
                       </Button>

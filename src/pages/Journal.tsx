@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader as AlertHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import Layout from "@/components/layout/Layout";
 import { 
@@ -20,96 +21,294 @@ import {
   Download,
   Search,
   Filter,
-  Image,
   Video,
   Mic,
   Lock,
   Globe,
-  Tag
+  Tag,
+  LogIn,
+  Trash2,
+  FileText
 } from "lucide-react";
 
-const Journal = () => {
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<any>(null);
+const moods = ["Happy", "Excited", "Peaceful", "Adventurous", "Grateful", "Inspired", "Creative", "Contemplative"];
+const weatherOptions = ["Sunny", "Cloudy", "Rainy", "Misty", "Clear", "Pleasant"];
 
-  const journalEntries = [
-    {
-      id: 1,
-      title: "Magical Sunrise at Netarhat",
-      date: "2024-03-15",
-      location: "Netarhat, Jharkhand",
-      excerpt: "Woke up at 5 AM to catch the sunrise from Magnolia Point. The view was absolutely breathtaking...",
-      content: "Today was one of those days that remind you why you travel. Woke up at 5 AM to catch the sunrise from Magnolia Point. The view was absolutely breathtaking - rolling hills covered in mist, and the sun slowly painting the sky in shades of orange and pink. Met some local villagers who shared stories about their traditions. The hospitality here is incredible.",
-      images: [
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop"
-      ],
-      mood: "Inspired",
-      weather: "Clear",
-      tags: ["Sunrise", "Nature", "Culture", "Netarhat"],
-      privacy: "Private",
-      rating: 5
-    },
-    {
-      id: 2,
-      title: "Learning Dhokra Art in Chaibasa",
-      date: "2024-03-12",
-      location: "Chaibasa, Jharkhand",
-      excerpt: "Spent the day learning the ancient art of Dhokra metal casting from master artisan Suresh ji...",
-      content: "Spent the day learning the ancient art of Dhokra metal casting from master artisan Suresh ji. The process is fascinating - using beeswax to create intricate designs, then coating with clay and burning out the wax. Created my first small elephant figurine! The artisans here have been practicing this craft for generations.",
-      images: [
-        "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop"
-      ],
-      mood: "Creative",
-      weather: "Sunny",
-      tags: ["Art", "Handicrafts", "Learning", "Traditional"],
-      privacy: "Public",
-      rating: 5
-    },
-    {
-      id: 3,
-      title: "Tribal Village Feast",
-      date: "2024-03-10",
-      location: "Khunti Village",
-      excerpt: "Invited to a traditional Munda family feast. The flavors were unlike anything I've tasted before...",
-      content: "What an incredible experience! Was invited to a traditional Munda family feast. The flavors were unlike anything I've tasted before - handia (rice beer), pittha, and various local vegetables cooked in bamboo. The family shared stories about their customs and even taught me some basic Mundari phrases. Felt so welcomed and honored to be part of their celebration.",
-      images: [
-        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop"
-      ],
-      mood: "Grateful",
-      weather: "Pleasant",
-      tags: ["Food", "Culture", "Family", "Traditional"],
-      privacy: "Friends",
-      rating: 5
-    },
-    {
-      id: 4,
-      title: "Trek to Lodh Falls",
-      date: "2024-03-08",
-      location: "Latehar, Jharkhand",
-      excerpt: "3-hour trek through dense forests to reach Jharkhand's highest waterfall. The sound of cascading water...",
-      content: "Started early morning for the 3-hour trek through dense forests to reach Jharkhand's highest waterfall. The sound of cascading water could be heard from kilometers away! The trek was challenging but so worth it. Spotted several bird species and even saw some deer. The local guide shared interesting facts about the flora and fauna. Perfect end to an adventurous day.",
-      images: [
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop"
-      ],
-      mood: "Adventurous",
-      weather: "Misty",
-      tags: ["Trekking", "Waterfall", "Adventure", "Nature"],
-      privacy: "Public",
-      rating: 4
+type JournalEntry = {
+  id: number;
+  title: string;
+  date: string;
+  location: string;
+  excerpt: string;
+  content: string;
+  images: string[];
+  videos: string[];
+  audios: string[];
+  mood: string;
+  weather: string;
+  tags: string[];
+  privacy: "Private" | "Public" | "Friends";
+  rating: number; // 0-5, 0 means not rated
+  visited: boolean;
+};
+
+export default function Journal() {
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  // Filters/search
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterMood, setFilterMood] = useState("");
+  const [filterWeather, setFilterWeather] = useState("");
+  const [filterHasMedia, setFilterHasMedia] = useState(false);
+
+  // Form state
+  const [title, setTitle] = useState("");
+  const [location, setLocation] = useState("");
+  const [date, setDate] = useState("");
+  const [content, setContent] = useState("");
+  const [tags, setTags] = useState("");
+  const [images, setImages] = useState<string[]>([]);
+  const [videos, setVideos] = useState<string[]>([]);
+  const [audios, setAudios] = useState<string[]>([]);
+  const [mood, setMood] = useState("");
+  const [weather, setWeather] = useState("");
+  const [visited, setVisited] = useState(false);
+  const [rating, setRating] = useState(0);
+
+  // Audio recording
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const [recording, setRecording] = useState(false);
+
+  const authUser = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("auth_user");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
     }
-  ];
+  }, []);
+
+  const storageKey = authUser?.email ? `journal_${authUser.email}` : null;
+
+  useEffect(() => {
+    if (!storageKey) return;
+    const raw = localStorage.getItem(storageKey);
+    setEntries(raw ? (JSON.parse(raw) as JournalEntry[]) : []);
+  }, [storageKey]);
 
   const stats = {
-    totalEntries: 28,
-    placesVisited: 12,
-    photosAdded: 156,
-    memoriesShared: 8
+    totalEntries: entries.length,
+    placesVisited: new Set(entries.map((e) => e.location).filter(Boolean)).size,
+    photosAdded: entries.reduce((n, e) => n + (e.images?.length || 0), 0),
+    memoriesShared: entries.filter((e) => e.privacy !== "Private").length,
   };
 
-  const moods = ["Happy", "Excited", "Peaceful", "Adventurous", "Grateful", "Inspired", "Creative", "Contemplative"];
-  const weatherOptions = ["Sunny", "Cloudy", "Rainy", "Misty", "Clear", "Pleasant"];
+  const saveEntries = (list: JournalEntry[]) => {
+    if (!storageKey) return;
+    localStorage.setItem(storageKey, JSON.stringify(list));
+  };
+
+  const handleFilesToDataUrls = (files: FileList): Promise<string[]> => {
+    const readers = Array.from(files).map(
+      (file) =>
+        new Promise<string>((resolve) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(String(fr.result));
+          fr.readAsDataURL(file);
+        })
+    );
+    return Promise.all(readers);
+  };
+
+  const onAddPhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const urls = await handleFilesToDataUrls(e.target.files);
+    setImages((prev) => [...prev, ...urls]);
+    e.target.value = "";
+  };
+
+  const onAddVideos = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const urls = await handleFilesToDataUrls(e.target.files);
+    setVideos((prev) => [...prev, ...urls]);
+    e.target.value = "";
+  };
+
+  // Audio recording helpers
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      mr.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUrl = String(reader.result);
+          setAudios((prev) => [...prev, dataUrl]);
+        };
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach((t) => t.stop());
+      };
+      mediaRecorderRef.current = mr;
+      mr.start();
+      setRecording(true);
+    } catch (e) {
+      alert("Microphone permission denied or not available.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && recording) {
+      mediaRecorderRef.current.stop();
+      setRecording(false);
+    }
+  };
+
+  const resetForm = () => {
+    setTitle("");
+    setLocation("");
+    setDate("");
+    setContent("");
+    setTags("");
+    setImages([]);
+    setVideos([]);
+    setAudios([]);
+    setMood("");
+    setWeather("");
+    setVisited(false);
+    setRating(0);
+    setRecording(false);
+  };
+
+  const handleSaveEntry = async () => {
+    if (!title || !date) {
+      alert("Please add a title and date.");
+      return;
+    }
+    if (visited && (rating < 1 || rating > 5)) {
+      alert("Please select a rating between 1 and 5.");
+      return;
+    }
+    setSaving(true);
+    const entry: JournalEntry = {
+      id: Date.now(),
+      title,
+      date,
+      location,
+      excerpt: content.slice(0, 140) + (content.length > 140 ? "..." : ""),
+      content,
+      images,
+      videos,
+      audios,
+      mood: mood || "",
+      weather: weather || "",
+      tags: tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+      privacy: "Private",
+      rating: visited ? rating : 0,
+      visited,
+    };
+    const next = [entry, ...entries];
+    setEntries(next);
+    saveEntries(next);
+    setSaving(false);
+    setIsCreateOpen(false);
+    resetForm();
+  };
+
+  const filteredEntries = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return entries.filter((e) => {
+      const matchesText = !q || [e.title, e.location, e.content, e.tags.join(" ")].some((t) => t?.toLowerCase().includes(q));
+      const matchesMood = !filterMood || e.mood === filterMood;
+      const matchesWeather = !filterWeather || e.weather === filterWeather;
+      const matchesMedia = !filterHasMedia || (e.images.length + e.videos.length + (e.audios?.length || 0) > 0);
+      return matchesText && matchesMood && matchesWeather && matchesMedia;
+    });
+  }, [entries, searchQuery, filterMood, filterWeather, filterHasMedia]);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setFilterMood("");
+    setFilterWeather("");
+    setFilterHasMedia(false);
+  };
+
+  const downloadEntryJson = (entry: JournalEntry) => {
+    const blob = new Blob([JSON.stringify(entry, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `journal_entry_${entry.id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadEntryPdf = (entry: JournalEntry) => {
+    const w = window.open("", "_blank", "noopener,noreferrer");
+    if (!w) return;
+    const styles = `
+      <style>
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; padding: 24px; color: #111827; }
+        h1 { font-size: 22px; margin: 0 0 8px; }
+        .meta { color: #6B7280; font-size: 12px; margin-bottom: 12px; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 9999px; background:#F3F4F6; margin-right: 6px; font-size: 11px; }
+        .section { margin-top: 16px; }
+        .images { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        img { width: 100%; height: auto; border-radius: 6px; }
+        .rating { font-weight: 600; }
+        .muted { color: #6B7280; }
+      </style>
+    `;
+    const ratingText = entry.visited && entry.rating > 0 ? `${entry.rating}/5` : "Not rated";
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Journal Entry ${entry.id}</title>
+          ${styles}
+        </head>
+        <body>
+          <h1>${entry.title}</h1>
+          <div class="meta">
+            ${new Date(entry.date).toLocaleDateString()} • ${entry.location || ""}
+          </div>
+          <div class="meta">
+            <span class="rating">Rating:</span> ${ratingText} • Mood: ${entry.mood || "-"} • Weather: ${entry.weather || "-"}
+          </div>
+          <div class="section">
+            <div>${entry.content.replace(/\n/g, "<br/>")}</div>
+          </div>
+          ${entry.tags.length ? `<div class="section">${entry.tags.map(t => `<span class="tag">${t}</span>`).join(" ")}</div>` : ""}
+          ${entry.images.length ? `<div class="section images">${entry.images.map(src => `<img src="${src}" />`).join("")}</div>` : ""}
+          <script>window.onload = () => { window.print(); };<\/script>
+        </body>
+      </html>
+    `;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  };
+
+  const deleteEntry = (id: number) => {
+    const next = entries.filter((e) => e.id !== id);
+    setEntries(next);
+    saveEntries(next);
+  };
 
   return (
     <Layout>
@@ -148,20 +347,27 @@ const Journal = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {!authUser ? (
+          <div className="max-w-xl mx-auto text-center p-8 border rounded-lg">
+            <LogIn className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-muted-foreground">Please log in to start your travel journal.</p>
+          </div>
+        ) : (
+        <>
         {/* Actions Bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input placeholder="Search your memories..." className="pl-10 w-64" />
+                <Input placeholder="Search your memories..." className="pl-10 w-64" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
-            <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setShowFilters((s) => !s)}>
               <Filter className="h-4 w-4 mr-2" />
-              Filter
+                {showFilters ? "Hide Filters" : "Filter"}
             </Button>
           </div>
           
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <Dialog open={isCreateOpen} onOpenChange={(o) => { setIsCreateOpen(o); if (!o) resetForm(); }}>
             <DialogTrigger asChild>
               <Button variant="cultural" size="lg">
                 <Plus className="h-4 w-4 mr-2" />
@@ -179,22 +385,22 @@ const Journal = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="title">Title</Label>
-                    <Input id="title" placeholder="Give your memory a title..." />
+                      <Input id="title" placeholder="Give your memory a title..." value={title} onChange={(e) => setTitle(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
-                    <Input id="location" placeholder="Where were you?" />
+                      <Input id="location" placeholder="Where were you?" value={location} onChange={(e) => setLocation(e.target.value)} />
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" />
+                      <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="mood">Mood</Label>
-                    <select className="w-full px-3 py-2 border border-input rounded-md">
+                      <select className="w-full px-3 py-2 border border-input rounded-md" value={mood} onChange={(e) => setMood(e.target.value)}>
                       <option value="">Select mood...</option>
                       {moods.map(mood => (
                         <option key={mood} value={mood}>{mood}</option>
@@ -202,6 +408,40 @@ const Journal = () => {
                     </select>
                   </div>
                 </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="weather">Weather</Label>
+                      <select className="w-full px-3 py-2 border border-input rounded-md" value={weather} onChange={(e) => setWeather(e.target.value)}>
+                        <option value="">Select weather...</option>
+                        {weatherOptions.map(w => (
+                          <option key={w} value={w}>{w}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="tags">Tags</Label>
+                      <Input id="tags" placeholder="Add tags separated by commas..." value={tags} onChange={(e) => setTags(e.target.value)} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="inline-flex items-center gap-2">
+                      <input type="checkbox" checked={visited} onChange={(e) => { setVisited(e.target.checked); if (!e.target.checked) setRating(0); }} />
+                      I visited this place
+                    </label>
+                    {visited && (
+                      <div className="flex items-center gap-2">
+                        <Label>Rating</Label>
+                        <select className="px-2 py-1 border rounded" value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+                          <option value={0}>Select…</option>
+                          {[1,2,3,4,5].map((r) => (
+                            <option key={r} value={r}>{r}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="content">Your Story</Label>
@@ -209,28 +449,65 @@ const Journal = () => {
                     id="content" 
                     placeholder="Tell the story of this moment..."
                     className="min-h-[120px]"
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="tags">Tags</Label>
-                  <Input id="tags" placeholder="Add tags separated by commas..." />
-                </div>
-                
-                <div className="flex items-center space-x-4">
-                  <Button variant="outline" className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <Button asChild variant="outline" className="flex-1">
+                      <label className="cursor-pointer">
+                        <input type="file" accept="image/*" multiple className="hidden" onChange={onAddPhotos} />
+                        <span className="inline-flex items-center">
                     <Camera className="h-4 w-4 mr-2" />
                     Add Photos
+                        </span>
+                      </label>
                   </Button>
-                  <Button variant="outline" className="flex-1">
+                    <Button asChild variant="outline" className="flex-1">
+                      <label className="cursor-pointer">
+                        <input type="file" accept="video/*" multiple className="hidden" onChange={onAddVideos} />
+                        <span className="inline-flex items-center">
                     <Video className="h-4 w-4 mr-2" />
                     Add Video
+                        </span>
+                      </label>
+                    </Button>
+                    {!recording ? (
+                      <Button variant="outline" className="flex-1" onClick={startRecording}>
+                        <Mic className="h-4 w-4 mr-2" />
+                        Record Audio
                   </Button>
-                  <Button variant="outline" className="flex-1">
+                    ) : (
+                      <Button variant="destructive" className="flex-1" onClick={stopRecording}>
                     <Mic className="h-4 w-4 mr-2" />
-                    Voice Note
+                        Stop Recording
                   </Button>
+                    )}
                 </div>
+
+                  {(images.length > 0 || videos.length > 0 || audios.length > 0) && (
+                    <div className="grid grid-cols-3 gap-3">
+                      {images.map((src, i) => (
+                        <div key={`img-${i}`} className="relative">
+                          <img src={src} alt={`upload-${i}`} className="w-full h-24 object-cover rounded" />
+                          <a href={src} download className="absolute bottom-1 right-1 bg-background/80 text-xs p-1 rounded">Download</a>
+                        </div>
+                      ))}
+                      {videos.map((src, i) => (
+                        <div key={`vid-${i}`} className="relative">
+                          <video src={src} className="w-full h-24 object-cover rounded" controls />
+                          <a href={src} download className="absolute bottom-1 right-1 bg-background/80 text-xs p-1 rounded">Download</a>
+                        </div>
+                      ))}
+                      {audios.map((src, i) => (
+                        <div key={`aud-${i}`} className="relative bg-muted p-2 rounded">
+                          <audio src={src} controls className="w-full" />
+                          <a href={src} download className="absolute bottom-1 right-1 bg-background/80 text-xs p-1 rounded">Download</a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 
                 <div className="flex justify-between items-center pt-4">
                   <div className="flex items-center space-x-2">
@@ -241,8 +518,8 @@ const Journal = () => {
                     <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
                       Cancel
                     </Button>
-                    <Button variant="cultural">
-                      Save Entry
+                      <Button variant="cultural" onClick={handleSaveEntry} disabled={saving}>
+                        {saving ? "Saving..." : "Save Entry"}
                     </Button>
                   </div>
                 </div>
@@ -251,9 +528,46 @@ const Journal = () => {
           </Dialog>
         </div>
 
+          {/* Filters UI */}
+          {showFilters && (
+            <div className="border rounded-lg p-4 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <Label className="text-sm">Mood</Label>
+                <select className="w-full px-3 py-2 border border-input rounded-md" value={filterMood} onChange={(e) => setFilterMood(e.target.value)}>
+                  <option value="">Any</option>
+                  {moods.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label className="text-sm">Weather</Label>
+                <select className="w-full px-3 py-2 border border-input rounded-md" value={filterWeather} onChange={(e) => setFilterWeather(e.target.value)}>
+                  <option value="">Any</option>
+                  {weatherOptions.map((w) => (
+                    <option key={w} value={w}>{w}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-end">
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={filterHasMedia} onChange={(e) => setFilterHasMedia(e.target.checked)} />
+                  Has media (photos/videos/audio)
+                </label>
+              </div>
+              <div className="flex items-end gap-2">
+                <Button variant="outline" onClick={clearFilters}>Clear</Button>
+                <Button onClick={() => setShowFilters(false)}>Apply</Button>
+              </div>
+            </div>
+          )}
+
         {/* Journal Entries */}
+          {filteredEntries.length === 0 ? (
+            <div className="text-center text-muted-foreground py-16">No memories found. Try adjusting your filters or create a new entry.</div>
+          ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {journalEntries.map((entry) => (
+            {filteredEntries.map((entry) => (
             <Card key={entry.id} className="travel-card group overflow-hidden">
               {/* Entry Header */}
               <div className="relative">
@@ -274,18 +588,22 @@ const Journal = () => {
                 
                 <div className="absolute top-3 left-3 flex space-x-2">
                   <Badge className="bg-background/90 text-foreground">
-                    {entry.mood}
+                      {entry.mood || ""}
                   </Badge>
                   <Badge variant="outline" className="bg-background/90">
-                    {entry.weather}
+                      {entry.weather || ""}
                   </Badge>
                 </div>
                 
                 <div className="absolute top-3 right-3 flex space-x-1">
                   <div className="flex">
-                    {[...Array(entry.rating)].map((_, i) => (
+                      {entry.rating > 0 ? (
+                        [...Array(entry.rating)].map((_, i) => (
                       <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    ))}
+                        ))
+                      ) : (
+                        <span className="text-xs bg-background/80 px-2 py-0.5 rounded">Not rated</span>
+                      )}
                   </div>
                   <div className="bg-background/90 rounded-full p-1">
                     {entry.privacy === "Private" ? (
@@ -342,6 +660,7 @@ const Journal = () => {
 
                   {/* Actions */}
                   <div className="flex justify-between items-center pt-2">
+                      <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -349,6 +668,27 @@ const Journal = () => {
                     >
                       Read More
                     </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertHeader>
+                              <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteEntry(entry.id)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     <div className="flex space-x-1">
                       <Button variant="ghost" size="icon">
                         <Heart className="h-4 w-4" />
@@ -366,13 +706,7 @@ const Journal = () => {
             </Card>
           ))}
         </div>
-
-        {/* Load More */}
-        <div className="text-center mt-12">
-          <Button variant="outline" size="lg">
-            Load More Entries
-          </Button>
-        </div>
+          )}
 
         {/* Entry Detail Modal */}
         {selectedEntry && (
@@ -401,12 +735,34 @@ const Journal = () => {
                 {selectedEntry.images.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {selectedEntry.images.map((image: string, index: number) => (
+                        <div key={index} className="relative">
                       <img 
-                        key={index}
                         src={image} 
                         alt={`${selectedEntry.title} - ${index + 1}`}
                         className="w-full h-64 object-cover rounded-lg"
                       />
+                          <a href={image} download className="absolute bottom-2 right-2 bg-background/80 text-xs px-2 py-1 rounded">Download</a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {selectedEntry.videos?.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedEntry.videos.map((src: string, index: number) => (
+                        <div key={index} className="relative">
+                          <video src={src} className="w-full h-64 object-cover rounded-lg" controls />
+                          <a href={src} download className="absolute bottom-2 right-2 bg-background/80 text-xs px-2 py-1 rounded">Download</a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {selectedEntry.audios?.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedEntry.audios.map((src: string, index: number) => (
+                        <div key={index} className="relative bg-muted p-2 rounded">
+                          <audio src={src} className="w-full" controls />
+                          <a href={src} download className="absolute bottom-2 right-2 bg-background/80 text-xs px-2 py-1 rounded">Download</a>
+                        </div>
                     ))}
                   </div>
                 )}
@@ -414,16 +770,14 @@ const Journal = () => {
                 {/* Mood and Weather */}
                 <div className="flex items-center space-x-4">
                   <Badge className="bg-primary/10 text-primary">
-                    Mood: {selectedEntry.mood}
+                      {selectedEntry.visited && selectedEntry.rating > 0 ? `Rating: ${selectedEntry.rating}/5` : "Not rated"}
+                    </Badge>
+                    <Badge className="bg-primary/10 text-primary">
+                      Mood: {selectedEntry.mood || "-"}
                   </Badge>
                   <Badge variant="outline">
-                    Weather: {selectedEntry.weather}
+                      Weather: {selectedEntry.weather || "-"}
                   </Badge>
-                  <div className="flex">
-                    {[...Array(selectedEntry.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
                 </div>
                 
                 {/* Content */}
@@ -449,12 +803,28 @@ const Journal = () => {
                     <Button variant="ghost" size="icon">
                       <Heart className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon">
-                      <Share2 className="h-4 w-4" />
+                      {selectedEntry && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
                     </Button>
-                    <Button variant="ghost" size="icon">
-                      <Download className="h-4 w-4" />
-                    </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertHeader>
+                              <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => { deleteEntry(selectedEntry.id); setSelectedEntry(null); }}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                   </div>
                   <Button variant="outline" onClick={() => setSelectedEntry(null)}>
                     Close
@@ -464,60 +834,9 @@ const Journal = () => {
             </DialogContent>
           </Dialog>
         )}
-
-        {/* Journal Features */}
-        <section className="mt-16">
-          <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
-            Your Journey, Your Story
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="travel-card text-center p-6">
-              <CardContent className="p-0">
-                <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Camera className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  Rich Media Support
-                </h3>
-                <p className="text-muted-foreground">
-                  Add photos, videos, voice notes, and drawings to bring your memories to life
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="travel-card text-center p-6">
-              <CardContent className="p-0">
-                <div className="bg-eco-green/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Lock className="h-8 w-8 text-eco-green" />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  Privacy Control
-                </h3>
-                <p className="text-muted-foreground">
-                  Keep entries private, share with friends, or inspire the community
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="travel-card text-center p-6">
-              <CardContent className="p-0">
-                <div className="bg-cultural-orange/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Download className="h-8 w-8 text-cultural-orange" />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  Export & Backup
-                </h3>
-                <p className="text-muted-foreground">
-                  Download your journal as PDF or backup to cloud storage
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+        </>
+        )}
       </div>
     </Layout>
   );
-};
-
-export default Journal;
+}
