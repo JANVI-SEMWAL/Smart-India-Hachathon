@@ -24,13 +24,14 @@ import {
   Mountain,
   Building,
   Sparkles,
-  Info
+  Info,
+  Compass
 } from "lucide-react";
 
 const Events = () => {
   const [activeTab, setActiveTab] = useState("upcoming");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedDate, setSelectedDate] = useState("2024-03-15");
+  const [selectedDate, setSelectedDate] = useState("2025-03-15");
   const [searchQuery, setSearchQuery] = useState("");
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -40,7 +41,7 @@ const Events = () => {
     {
       id: 1,
       title: "Sarhul Festival Celebration",
-      date: "2024-03-15",
+      date: "2025-03-15",
       time: "06:00 AM - 10:00 PM",
       location: "Ranchi, Various Villages",
       category: "Cultural Festival",
@@ -62,7 +63,7 @@ const Events = () => {
     {
       id: 2,
       title: "Eco-Tourism Photography Workshop",
-      date: "2024-03-20",
+      date: "2025-03-20",
       time: "07:00 AM - 05:00 PM",
       location: "Netarhat, Jharkhand",
       category: "Workshop",
@@ -78,7 +79,7 @@ const Events = () => {
     {
       id: 3,
       title: "Tribal Cooking Masterclass",
-      date: "2024-03-25",
+      date: "2025-03-25",
       time: "10:00 AM - 04:00 PM",
       location: "Khunti Village",
       category: "Culinary Experience",
@@ -94,7 +95,7 @@ const Events = () => {
     {
       id: 4,
       title: "Lodh Falls Trekking Expedition",
-      date: "2024-03-30",
+      date: "2025-03-30",
       time: "05:00 AM - 08:00 PM",
       location: "Lodh Falls, Latehar",
       category: "Adventure",
@@ -110,7 +111,7 @@ const Events = () => {
     {
       id: 5,
       title: "Dhokra Art Workshop",
-      date: "2024-04-05",
+      date: "2025-04-05",
       time: "09:00 AM - 05:00 PM",
       location: "Chaibasa Art Center",
       category: "Art Workshop",
@@ -126,7 +127,7 @@ const Events = () => {
     {
       id: 6,
       title: "Karma Festival Folk Music Concert",
-      date: "2024-08-15",
+      date: "2025-08-15",
       time: "06:00 PM - 11:00 PM",
       location: "Jamshedpur Cultural Complex",
       category: "Music Festival",
@@ -148,7 +149,7 @@ const Events = () => {
     {
       id: 7,
       title: "Chhau Dance Festival",
-      date: "2024-04-10",
+      date: "2025-04-10",
       time: "07:00 PM - 10:00 PM",
       location: "Seraikela, Jharkhand",
       category: "Dance Festival",
@@ -170,7 +171,7 @@ const Events = () => {
     {
       id: 8,
       title: "Jharkhand Handicrafts Fair",
-      date: "2024-12-01",
+      date: "2025-12-01",
       time: "10:00 AM - 08:00 PM",
       location: "Morabadi Ground, Ranchi",
       category: "Craft Fair",
@@ -192,7 +193,7 @@ const Events = () => {
     {
       id: 9,
       title: "Tusu Festival Celebration",
-      date: "2024-01-15",
+      date: "2025-01-15",
       time: "06:00 AM - 06:00 PM",
       location: "Various Villages, Jharkhand",
       category: "Harvest Festival",
@@ -214,7 +215,7 @@ const Events = () => {
     {
       id: 10,
       title: "Jharkhand Food Festival",
-      date: "2024-11-20",
+      date: "2025-11-20",
       time: "11:00 AM - 09:00 PM",
       location: "Albert Ekka Chowk, Ranchi",
       category: "Food Festival",
@@ -236,7 +237,7 @@ const Events = () => {
     {
       id: 11,
       title: "Sohrai Festival - Tribal Art Exhibition",
-      date: "2024-11-01",
+      date: "2025-11-01",
       time: "09:00 AM - 06:00 PM",
       location: "Hazaribagh, Jharkhand",
       category: "Art Exhibition",
@@ -258,7 +259,7 @@ const Events = () => {
     {
       id: 12,
       title: "Jharkhand Tribal Dance Competition",
-      date: "2024-05-20",
+      date: "2025-05-20",
       time: "06:00 PM - 10:00 PM",
       location: "JRD Tata Sports Complex, Jamshedpur",
       category: "Dance Competition",
@@ -280,7 +281,7 @@ const Events = () => {
     {
       id: 13,
       title: "Baba Baidyanath Dham Yatra",
-      date: "2024-07-15",
+      date: "2025-07-15",
       time: "04:00 AM - 11:00 PM",
       location: "Deoghar, Jharkhand",
       category: "Religious Pilgrimage",
@@ -302,7 +303,7 @@ const Events = () => {
     {
       id: 14,
       title: "Jharkhand Traditional Music Festival",
-      date: "2024-09-10",
+      date: "2025-09-10",
       time: "05:00 PM - 11:00 PM",
       location: "Birsa Munda Park, Ranchi",
       category: "Music Festival",
@@ -324,7 +325,7 @@ const Events = () => {
     {
       id: 15,
       title: "Jharkhand Tribal Cuisine Festival",
-      date: "2024-10-05",
+      date: "2025-10-05",
       time: "11:00 AM - 09:00 PM",
       location: "Albert Ekka Chowk, Ranchi",
       category: "Food Festival",
@@ -342,6 +343,226 @@ const Events = () => {
       duration: "10 Hours",
       ageGroup: "All Ages",
       language: "Hindi, English"
+    },
+    {
+      id: 16,
+      title: "Jharkhand Tribal Dance & Music Festival",
+      date: "2025-02-14",
+      time: "06:00 PM - 11:00 PM",
+      location: "Birsa Munda Stadium, Ranchi",
+      category: "Cultural Festival",
+      price: "₹200",
+      image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=400&fit=crop&q=80",
+      description: "Witness the vibrant tribal dance and music performances featuring traditional instruments like dhol, nagara, and bansuri",
+      organizer: "Jharkhand Cultural Department",
+      attendees: 3000,
+      rating: 4.7,
+      featured: true,
+      tags: ["Dance", "Music", "Tribal", "Cultural"],
+      eventType: "Cultural Performance",
+      culturalSignificance: "Celebrates the rich tribal heritage of Jharkhand through traditional dance forms like Jhumair, Paika, and Chhau.",
+      activities: ["Traditional Dance Performances", "Folk Music", "Instrumental Showcase", "Cultural Workshops", "Tribal Art Exhibition"],
+      duration: "5 Hours",
+      ageGroup: "All Ages",
+      language: "Hindi, Santhali, Mundari, Ho"
+    },
+    {
+      id: 17,
+      title: "Jharkhand Handloom & Textile Fair",
+      date: "2025-06-10",
+      time: "10:00 AM - 08:00 PM",
+      location: "Morabadi Ground, Ranchi",
+      category: "Craft Fair",
+      price: "₹100",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&q=80",
+      description: "Explore the beautiful handloom and textile traditions of Jharkhand including Tasar silk, cotton weaves, and tribal textiles",
+      organizer: "Jharkhand Handloom Development Corporation",
+      attendees: 2500,
+      rating: 4.6,
+      featured: false,
+      tags: ["Handloom", "Textile", "Artisan", "Shopping"],
+      eventType: "Exhibition",
+      culturalSignificance: "Showcases the traditional handloom and textile arts of Jharkhand, preserving ancient weaving techniques and patterns.",
+      activities: ["Live Weaving Demonstrations", "Textile Workshops", "Fashion Shows", "Artisan Markets", "Cultural Performances"],
+      duration: "10 Hours",
+      ageGroup: "All Ages",
+      language: "Hindi, English"
+    },
+    {
+      id: 18,
+      title: "Jharkhand Wildlife Photography Safari",
+      date: "2025-04-25",
+      time: "05:00 AM - 07:00 PM",
+      location: "Betla National Park, Palamu",
+      category: "Adventure",
+      price: "₹1,500",
+      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop&q=80",
+      description: "Capture the diverse wildlife of Jharkhand including tigers, elephants, and various bird species in their natural habitat",
+      organizer: "Wildlife Photography Society",
+      attendees: 20,
+      rating: 4.9,
+      featured: true,
+      tags: ["Wildlife", "Photography", "Safari", "Nature"],
+      eventType: "Adventure",
+      culturalSignificance: "Promotes wildlife conservation and eco-tourism in Jharkhand's protected areas.",
+      activities: ["Wildlife Safari", "Photography Workshop", "Bird Watching", "Nature Walk", "Conservation Talk"],
+      duration: "14 Hours",
+      ageGroup: "12+",
+      language: "Hindi, English"
+    },
+    {
+      id: 19,
+      title: "Jharkhand Traditional Medicine Workshop",
+      date: "2025-05-15",
+      time: "09:00 AM - 05:00 PM",
+      location: "Tribal Research Institute, Ranchi",
+      category: "Workshop",
+      price: "₹800",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&q=80",
+      description: "Learn about traditional tribal medicine, herbal remedies, and natural healing practices from local healers",
+      organizer: "Tribal Medicine Research Center",
+      attendees: 30,
+      rating: 4.8,
+      featured: false,
+      tags: ["Medicine", "Herbal", "Traditional", "Workshop"],
+      eventType: "Educational Workshop",
+      culturalSignificance: "Preserves and promotes traditional tribal knowledge of herbal medicine and natural healing practices.",
+      activities: ["Herbal Medicine Workshop", "Plant Identification", "Traditional Healing Methods", "Medicine Preparation", "Cultural Exchange"],
+      duration: "8 Hours",
+      ageGroup: "16+",
+      language: "Hindi, English"
+    },
+    {
+      id: 20,
+      title: "Jharkhand Rock Art & Cave Painting Tour",
+      date: "2025-09-20",
+      time: "08:00 AM - 06:00 PM",
+      location: "Isco Village, Hazaribagh",
+      category: "Cultural Tour",
+      price: "₹600",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&q=80",
+      description: "Explore ancient rock art and cave paintings that date back thousands of years, showcasing tribal life and culture",
+      organizer: "Archaeological Survey of India",
+      attendees: 25,
+      rating: 4.7,
+      featured: true,
+      tags: ["Archaeology", "History", "Art", "Cultural"],
+      eventType: "Cultural Tour",
+      culturalSignificance: "Preserves and showcases ancient tribal art and cultural expressions through rock paintings and cave art.",
+      activities: ["Rock Art Tour", "Archaeological Walk", "History Talk", "Art Workshop", "Cultural Storytelling"],
+      duration: "10 Hours",
+      ageGroup: "All Ages",
+      language: "Hindi, English"
+    },
+    {
+      id: 21,
+      title: "Jharkhand Tribal Wrestling Championship",
+      date: "2025-07-25",
+      time: "04:00 PM - 09:00 PM",
+      location: "JRD Tata Sports Complex, Jamshedpur",
+      category: "Sports",
+      price: "₹300",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&q=80",
+      description: "Witness traditional tribal wrestling competitions featuring local champions and traditional wrestling techniques",
+      organizer: "Jharkhand Wrestling Association",
+      attendees: 1500,
+      rating: 4.5,
+      featured: false,
+      tags: ["Wrestling", "Sports", "Traditional", "Competition"],
+      eventType: "Sports Event",
+      culturalSignificance: "Preserves traditional tribal wrestling techniques and promotes physical fitness and cultural pride.",
+      activities: ["Wrestling Matches", "Traditional Techniques", "Cultural Performances", "Sports Workshop", "Award Ceremony"],
+      duration: "5 Hours",
+      ageGroup: "All Ages",
+      language: "Hindi, Santhali"
+    },
+    {
+      id: 22,
+      title: "Jharkhand Bamboo Craft Workshop",
+      date: "2025-08-30",
+      time: "10:00 AM - 04:00 PM",
+      location: "Bamboo Craft Center, Chaibasa",
+      category: "Art Workshop",
+      price: "₹1,200",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&q=80",
+      description: "Learn traditional bamboo crafting techniques including basket weaving, furniture making, and decorative items",
+      organizer: "Bamboo Craft Development Society",
+      attendees: 18,
+      rating: 4.8,
+      featured: true,
+      tags: ["Bamboo", "Craft", "Traditional", "Handicraft"],
+      eventType: "Art Workshop",
+      culturalSignificance: "Preserves traditional bamboo crafting techniques and promotes sustainable use of natural resources.",
+      activities: ["Bamboo Weaving", "Furniture Making", "Decorative Craft", "Tool Making", "Cultural Exchange"],
+      duration: "6 Hours",
+      ageGroup: "12+",
+      language: "Hindi, English"
+    },
+    {
+      id: 23,
+      title: "Jharkhand Tribal Language Festival",
+      date: "2025-12-15",
+      time: "09:00 AM - 06:00 PM",
+      location: "Ranchi University, Ranchi",
+      category: "Cultural Festival",
+      price: "Free",
+      image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=400&fit=crop&q=80",
+      description: "Celebrate the linguistic diversity of Jharkhand with poetry, storytelling, and cultural performances in various tribal languages",
+      organizer: "Jharkhand Language Development Institute",
+      attendees: 2000,
+      rating: 4.9,
+      featured: true,
+      tags: ["Language", "Culture", "Poetry", "Storytelling"],
+      eventType: "Cultural Festival",
+      culturalSignificance: "Promotes and preserves the rich linguistic heritage of Jharkhand's tribal communities.",
+      activities: ["Poetry Recitation", "Storytelling", "Language Workshops", "Cultural Performances", "Book Exhibition"],
+      duration: "9 Hours",
+      ageGroup: "All Ages",
+      language: "Hindi, Santhali, Mundari, Ho, Kurukh"
+    },
+    {
+      id: 24,
+      title: "Jharkhand Traditional Pottery Workshop",
+      date: "2025-11-10",
+      time: "09:00 AM - 05:00 PM",
+      location: "Pottery Village, Khunti",
+      category: "Art Workshop",
+      price: "₹900",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&q=80",
+      description: "Learn traditional pottery techniques including wheel throwing, hand building, and traditional firing methods",
+      organizer: "Traditional Pottery Society",
+      attendees: 15,
+      rating: 4.7,
+      featured: false,
+      tags: ["Pottery", "Traditional", "Craft", "Handicraft"],
+      eventType: "Art Workshop",
+      culturalSignificance: "Preserves traditional pottery techniques and promotes the cultural heritage of Jharkhand's artisan communities.",
+      activities: ["Wheel Throwing", "Hand Building", "Traditional Firing", "Glazing Techniques", "Cultural Exchange"],
+      duration: "8 Hours",
+      ageGroup: "10+",
+      language: "Hindi, English"
+    },
+    {
+      id: 25,
+      title: "Jharkhand Tribal Archery Competition",
+      date: "2025-06-25",
+      time: "08:00 AM - 05:00 PM",
+      location: "Archery Ground, Khunti",
+      category: "Sports",
+      price: "₹150",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&q=80",
+      description: "Watch traditional tribal archery competitions featuring skilled archers using traditional bows and arrows",
+      organizer: "Jharkhand Archery Association",
+      attendees: 800,
+      rating: 4.6,
+      featured: true,
+      tags: ["Archery", "Sports", "Traditional", "Competition"],
+      eventType: "Sports Event",
+      culturalSignificance: "Preserves traditional tribal archery techniques and promotes cultural pride and physical fitness.",
+      activities: ["Archery Competition", "Traditional Techniques", "Cultural Performances", "Archery Workshop", "Award Ceremony"],
+      duration: "9 Hours",
+      ageGroup: "All Ages",
+      language: "Hindi, Santhali"
     }
   ];
 
@@ -354,7 +575,10 @@ const Events = () => {
     { id: "nature", name: "Nature & Eco", icon: TreePine },
     { id: "dance", name: "Dance", icon: Music },
     { id: "religious", name: "Religious", icon: Building },
-    { id: "art", name: "Art & Craft", icon: Camera }
+    { id: "art", name: "Art & Craft", icon: Camera },
+    { id: "sports", name: "Sports", icon: Building },
+    { id: "exhibition", name: "Exhibitions", icon: Building },
+    { id: "tour", name: "Cultural Tours", icon: Compass }
   ];
 
   const getFilteredEvents = (eventsList: any[]) => {
@@ -363,14 +587,17 @@ const Events = () => {
     // Filter by category
     if (selectedCategory !== "all") {
       const categoryMap = {
-        "cultural": ["Cultural Festival", "Music Festival", "Dance Festival", "Cultural Performance", "Cultural Exhibition"],
-        "adventure": ["Adventure"],
-        "workshop": ["Workshop", "Art Workshop"],
+        "cultural": ["Cultural Festival", "Music Festival", "Dance Festival", "Cultural Performance", "Cultural Exhibition", "Cultural Tour"],
+        "adventure": ["Adventure", "Eco-Tourism"],
+        "workshop": ["Workshop", "Art Workshop", "Educational Workshop"],
         "food": ["Food Festival", "Culinary Experience"],
-        "nature": ["Eco-Tourism"],
-        "dance": ["Dance Festival", "Dance Competition"],
+        "nature": ["Eco-Tourism", "Adventure"],
+        "dance": ["Dance Festival", "Dance Competition", "Cultural Festival"],
         "religious": ["Religious Pilgrimage"],
-        "art": ["Art Exhibition", "Art Workshop"]
+        "art": ["Art Exhibition", "Art Workshop"],
+        "sports": ["Sports Event"],
+        "exhibition": ["Exhibition", "Craft Fair"],
+        "tour": ["Cultural Tour"]
       };
       
       const categoryTypes = categoryMap[selectedCategory as keyof typeof categoryMap] || [];
@@ -471,7 +698,7 @@ const Events = () => {
         {/* Categories */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">Browse by Category</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {categories.map((category) => (
               <Card 
                 key={category.id} 
@@ -907,7 +1134,7 @@ const Events = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Calendar View */}
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground mb-4">March 2024</h3>
+                    <h3 className="text-xl font-semibold text-foreground mb-4">March 2025</h3>
                     <div className="grid grid-cols-7 gap-1 mb-4">
                       {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                         <div key={day} className="text-center text-sm font-medium text-muted-foreground p-2">
@@ -916,7 +1143,7 @@ const Events = () => {
                       ))}
                       {Array.from({ length: 31 }, (_, i) => {
                         const day = i + 1;
-                        const dayDate = `2024-03-${day.toString().padStart(2, '0')}`;
+                        const dayDate = `2025-03-${day.toString().padStart(2, '0')}`;
                         const hasEvent = events.some(event => event.date === dayDate);
                         const isSelected = selectedDate === dayDate;
                         return (

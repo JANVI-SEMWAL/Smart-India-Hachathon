@@ -7,6 +7,8 @@ export type TouristSignup = {
   fullName: string;
   email: string;
   phone?: string;
+  address: string;
+  gender: string;
   password: string;
 };
 
@@ -16,6 +18,7 @@ export type ArtisanSignup = {
   email: string;
   phone: string;
   address: string;
+  gender: string;
   governmentId: string;
   password: string;
 };
@@ -24,6 +27,8 @@ export type AdminSignup = {
   fullName: string;
   email: string;
   phone?: string;
+  address: string;
+  gender: string;
   employeeId: string;
   password: string;
 };
@@ -117,7 +122,11 @@ export async function registerTourist(payload: TouristSignup) {
     email: payload.email,
     phone: payload.phone,
     password: payload.password,
-    data: { fullName: payload.fullName },
+    data: { 
+      fullName: payload.fullName,
+      address: payload.address,
+      gender: payload.gender
+    },
   });
   writeUsers(users);
   return delay({ success: true });
@@ -139,6 +148,7 @@ export async function registerArtisan(payload: ArtisanSignup) {
       fullName: payload.fullName,
       businessName: payload.businessName,
       address: payload.address,
+      gender: payload.gender,
       governmentId: payload.governmentId,
     },
   });
@@ -157,7 +167,12 @@ export async function registerAdmin(payload: AdminSignup) {
     email: payload.email,
     phone: payload.phone,
     password: payload.password,
-    data: { fullName: payload.fullName, employeeId: payload.employeeId },
+    data: { 
+      fullName: payload.fullName, 
+      address: payload.address,
+      gender: payload.gender,
+      employeeId: payload.employeeId 
+    },
   });
   writeUsers(users);
   return delay({ success: true });
@@ -173,7 +188,9 @@ export async function loginUser(identifier: string, password: string) {
     return delay({ success: false, message: "Artisan not approved yet" });
   }
   const fullName = (user.data?.fullName as string) || "User";
-  return delay({ success: true, role: user.role as UserRole, email: user.email, phone: user.phone, fullName });
+  const address = (user.data?.address as string) || "";
+  const gender = (user.data?.gender as string) || "";
+  return delay({ success: true, role: user.role as UserRole, email: user.email, phone: user.phone, fullName, address, gender });
 }
 
 export async function getPendingArtisans() {

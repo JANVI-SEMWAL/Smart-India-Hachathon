@@ -52,17 +52,18 @@ const Login = () => {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const canResend = useMemo(() => secondsLeft <= 0, [secondsLeft]);
 
-  const [touristForm, setTouristForm] = useState({ fullName: "", email: "", phone: "", password: "" });
+  const [touristForm, setTouristForm] = useState({ fullName: "", email: "", phone: "", address: "", gender: "", password: "" });
   const [artisanForm, setArtisanForm] = useState({
     fullName: "",
     businessName: "",
     email: "",
     phone: "",
     address: "",
+    gender: "",
     aadharNumber: "",
     password: "",
   });
-  const [adminForm, setAdminForm] = useState({ fullName: "", email: "", phone: "", employeeId: "", password: "" });
+  const [adminForm, setAdminForm] = useState({ fullName: "", email: "", phone: "", address: "", gender: "", employeeId: "", password: "" });
   const [loginForm, setLoginForm] = useState({ identifier: "", password: "" });
 
   useEffect(() => {
@@ -158,7 +159,14 @@ const Login = () => {
       if (!res.success) throw new Error(res.message || "Login failed");
       localStorage.setItem(
         "auth_user",
-        JSON.stringify({ role: res.role, fullName: res.fullName, email: res.email, phone: res.phone })
+        JSON.stringify({ 
+          role: res.role, 
+          fullName: res.fullName, 
+          email: res.email, 
+          phone: res.phone,
+          address: res.address,
+          gender: res.gender
+        })
       );
       navigate("/");
     } catch (e: any) {
@@ -357,6 +365,28 @@ const Login = () => {
                               />
                             </div>
                             <div className="space-y-2">
+                              <Label>Address</Label>
+                              <Input
+                                placeholder="Your address"
+                                value={touristForm.address}
+                                onChange={(e) => setTouristForm({ ...touristForm, address: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Gender</Label>
+                              <select
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                value={touristForm.gender}
+                                onChange={(e) => setTouristForm({ ...touristForm, gender: e.target.value })}
+                              >
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                                <option value="prefer-not-to-say">Prefer not to say</option>
+                              </select>
+                            </div>
+                            <div className="space-y-2">
                               <Label>Password</Label>
                               <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -374,7 +404,7 @@ const Login = () => {
                             </div>
 
                             {!otpSent ? (
-                              <Button onClick={handleSendOtp} disabled={loading || !touristForm.email || !passwordValid(touristForm.password)} className="w-full" variant="cultural">
+                              <Button onClick={handleSendOtp} disabled={loading || !touristForm.email || !touristForm.address || !touristForm.gender || !passwordValid(touristForm.password)} className="w-full" variant="cultural">
                                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Email OTP"}
                               </Button>
                             ) : (
@@ -433,6 +463,20 @@ const Login = () => {
                               <Input value={artisanForm.address} onChange={(e) => setArtisanForm({ ...artisanForm, address: e.target.value })} />
                             </div>
                             <div className="space-y-2">
+                              <Label>Gender</Label>
+                              <select
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                value={artisanForm.gender}
+                                onChange={(e) => setArtisanForm({ ...artisanForm, gender: e.target.value })}
+                              >
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                                <option value="prefer-not-to-say">Prefer not to say</option>
+                              </select>
+                            </div>
+                            <div className="space-y-2">
                               <Label>Aadhar Number (Required for Artisan Registration)</Label>
                               <Input 
                                 placeholder="1234 5678 9012" 
@@ -462,7 +506,7 @@ const Login = () => {
                             </div>
 
                             {!otpSent ? (
-                              <Button onClick={handleSendOtp} disabled={loading || !artisanForm.phone || !passwordValid(artisanForm.password) || !artisanForm.aadharNumber} className="w-full" variant="cultural">
+                              <Button onClick={handleSendOtp} disabled={loading || !artisanForm.phone || !artisanForm.gender || !passwordValid(artisanForm.password) || !artisanForm.aadharNumber} className="w-full" variant="cultural">
                                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Phone OTP (Aadhar Verified)"}
                               </Button>
                             ) : (
@@ -508,6 +552,28 @@ const Login = () => {
                                 <Input value={adminForm.phone} onChange={(e) => setAdminForm({ ...adminForm, phone: e.target.value })} />
                               </div>
                             </div>
+                            <div className="space-y-2">
+                              <Label>Address</Label>
+                              <Input
+                                placeholder="Your address"
+                                value={adminForm.address}
+                                onChange={(e) => setAdminForm({ ...adminForm, address: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Gender</Label>
+                              <select
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                value={adminForm.gender}
+                                onChange={(e) => setAdminForm({ ...adminForm, gender: e.target.value })}
+                              >
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                                <option value="prefer-not-to-say">Prefer not to say</option>
+                              </select>
+                            </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div className="space-y-2">
                                 <Label>Employee ID</Label>
@@ -532,7 +598,7 @@ const Login = () => {
                             </div>
 
                             {!otpSent ? (
-                              <Button onClick={handleSendOtp} disabled={loading || !adminForm.email || !passwordValid(adminForm.password)} className="w-full" variant="cultural">
+                              <Button onClick={handleSendOtp} disabled={loading || !adminForm.email || !adminForm.address || !adminForm.gender || !passwordValid(adminForm.password)} className="w-full" variant="cultural">
                                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Email Verification"}
                               </Button>
                             ) : (

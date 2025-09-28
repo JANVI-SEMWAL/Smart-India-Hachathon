@@ -25,13 +25,15 @@ import {
 } from "lucide-react";
 
 const Profile = () => {
-  const [authUser, setAuthUser] = useState<{ 
+  const [authUser, setAuthUser] = useState<{
     fullName?: string; 
     email?: string; 
     phone?: string; 
     role?: string; 
     joinDate?: string;
     location?: string;
+    address?: string;
+    gender?: string;
     profileImage?: string;
     bio?: string;
     interests?: string[];
@@ -43,6 +45,8 @@ const Profile = () => {
     email: "",
     phone: "",
     location: "",
+    address: "",
+    gender: "",
     bio: "",
     interests: [] as string[]
   });
@@ -58,6 +62,8 @@ const Profile = () => {
           email: user.email || "",
           phone: user.phone || "",
           location: user.location || "",
+          address: user.address || "",
+          gender: user.gender || "",
           bio: user.bio || "",
           interests: user.interests || []
         });
@@ -229,7 +235,23 @@ const Profile = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Gender</p>
-                      <p className="text-foreground font-medium">Female</p>
+                      <p className="text-foreground font-medium">
+                        {isEditing ? (
+                          <select
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            value={editForm.gender}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, gender: e.target.value }))}
+                          >
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                            <option value="prefer-not-to-say">Prefer not to say</option>
+                          </select>
+                        ) : (
+                          authUser.gender || "Not specified"
+                        )}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Date of Birth</p>
@@ -297,13 +319,13 @@ const Profile = () => {
                         <p className="text-foreground font-medium">
                           {isEditing ? (
                             <Textarea
-                              value={editForm.location}
-                              onChange={(e) => setEditForm(prev => ({ ...prev, location: e.target.value }))}
+                              value={editForm.address}
+                              onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
                               className="mt-1"
                               rows={2}
                             />
                           ) : (
-                            authUser.location || "Suddhowala Dehradun, Sainik colony"
+                            authUser.address || "Not specified"
                           )}
                         </p>
                       </div>
