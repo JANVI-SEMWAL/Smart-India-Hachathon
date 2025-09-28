@@ -1,0 +1,75 @@
+/* AR Map Animations */
+@keyframes mapPinGlow {
+  0% {
+    filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.8)) drop-shadow(0 0 25px rgba(239, 68, 68, 0.4));
+  }
+  100% {
+    filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.5));
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes locationPulse {
+  0%, 100% {
+    transform: scale(1) translateX(-50%) translateY(-50%);
+  }
+  50% {
+    transform: scale(1.05) translateX(-50%) translateY(-50%);
+  }
+}
+
+/* Interactive Map Styles */
+.ar-map-container {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ar-map-pin {
+  transition: all 0.3s ease;
+}
+
+.ar-map-pin:hover {
+  transform: scale(1.1) translateX(-50%) translateY(-50%);
+}
+
+.ar-map-pin.selected {
+  animation: mapPinGlow 2s ease-in-out infinite;
+}
+
+.ar-location-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ar-location-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Map zoom and pan smooth transitions */
+.ar-map-image {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced legend styling */
+.ar-map-legend {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Controls hover effects */
+.ar-map-control:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 1);
+}

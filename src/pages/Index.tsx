@@ -326,7 +326,9 @@ const Index = () => {
               <Smartphone className="h-10 w-10 mx-auto mb-4" />
               <h4 className="text-lg font-semibold mb-1">Mobile AR</h4>
               <p className="text-white/80 mb-4">Augmented reality on your smartphone</p>
-              <Button className="bg-white text-foreground hover:bg-gray-100">Open AR</Button>
+              <Link to="/ar-map">
+                <Button className="bg-white text-foreground hover:bg-gray-100">Open AR Maps</Button>
+              </Link>
             </div>
             <div className="rounded-xl bg-background p-8 text-center">
               <Monitor className="h-10 w-10 mx-auto mb-4 text-primary" />

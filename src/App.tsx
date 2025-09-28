@@ -11,9 +11,13 @@ import Events from "./pages/Events";
 import Safety from "./pages/Safety";
 import Journal from "./pages/Journal";
 import Login from "./pages/Login";
+
+import ARMap from "./pages/ARMap";
+
 import Recommendations from "./pages/Recommendations";
 import Profile from "./pages/Profile";
 import TestPage from "./pages/TestPage";
+
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 
@@ -34,6 +38,7 @@ const App = () => (
           <Route path="/recommendations" element={<Recommendations />} />
           <Route path="/safety" element={<Safety />} />
           <Route path="/journal" element={<Journal />} />
+          <Route path="/ar-map" element={<ARMap />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<AdminDashboard />} />
