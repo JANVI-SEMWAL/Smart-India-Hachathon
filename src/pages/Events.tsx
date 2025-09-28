@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import Layout from "@/components/layout/Layout";
+import Calendar2025 from "@/components/Calendar2025";
 import { 
   Calendar, 
   MapPin, 
@@ -563,6 +564,116 @@ const Events = () => {
       duration: "9 Hours",
       ageGroup: "All Ages",
       language: "Hindi, Santhali"
+    },
+    {
+      id: 26,
+      title: "Jharkhand New Year Celebration",
+      date: "2024-12-31",
+      time: "06:00 PM - 12:00 AM",
+      location: "Birsa Munda Park, Ranchi",
+      category: "Cultural Festival",
+      price: "Free",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&q=80",
+      description: "Celebrate the New Year with traditional Jharkhand cultural performances and community festivities",
+      organizer: "Jharkhand Cultural Department",
+      attendees: 5000,
+      rating: 4.8,
+      featured: false,
+      tags: ["New Year", "Cultural", "Community", "Free"],
+      eventType: "Festival",
+      culturalSignificance: "Celebrates the beginning of a new year with traditional Jharkhand cultural elements.",
+      activities: ["Cultural Performances", "Traditional Music", "Community Feast", "Fireworks", "Cultural Games"],
+      duration: "6 Hours",
+      ageGroup: "All Ages",
+      language: "Hindi, English"
+    },
+    {
+      id: 27,
+      title: "Winter Photography Workshop",
+      date: "2024-12-15",
+      time: "07:00 AM - 05:00 PM",
+      location: "Netarhat, Jharkhand",
+      category: "Workshop",
+      price: "₹2,000",
+      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop&q=80",
+      description: "Learn winter landscape photography techniques in Jharkhand's scenic hill stations",
+      organizer: "Nature Photography Academy",
+      attendees: 20,
+      rating: 4.7,
+      featured: true,
+      tags: ["Photography", "Winter", "Nature", "Workshop"],
+      eventType: "Workshop",
+      culturalSignificance: "Promotes eco-tourism and nature appreciation through photography.",
+      activities: ["Photography Techniques", "Nature Walk", "Equipment Demo", "Photo Review", "Award Ceremony"],
+      duration: "10 Hours",
+      ageGroup: "16+",
+      language: "Hindi, English"
+    },
+    {
+      id: 28,
+      title: "Jharkhand Heritage Walk",
+      date: "2024-11-20",
+      time: "09:00 AM - 04:00 PM",
+      location: "Ranchi Heritage Sites",
+      category: "Cultural Tour",
+      price: "₹500",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&q=80",
+      description: "Explore the rich heritage and historical sites of Ranchi with expert guides",
+      organizer: "Jharkhand Heritage Society",
+      attendees: 30,
+      rating: 4.9,
+      featured: false,
+      tags: ["Heritage", "History", "Walking Tour", "Cultural"],
+      eventType: "Cultural Tour",
+      culturalSignificance: "Preserves and promotes awareness of Jharkhand's historical and cultural heritage.",
+      activities: ["Heritage Site Visits", "Historical Talks", "Cultural Stories", "Photo Opportunities", "Local Cuisine"],
+      duration: "7 Hours",
+      ageGroup: "All Ages",
+      language: "Hindi, English"
+    },
+    {
+      id: 29,
+      title: "Autumn Cultural Festival",
+      date: "2024-10-15",
+      time: "10:00 AM - 08:00 PM",
+      location: "Jubilee Park, Jamshedpur",
+      category: "Cultural Festival",
+      price: "Free",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop&q=80",
+      description: "Celebrate the autumn season with traditional cultural performances and local cuisine",
+      organizer: "Jamshedpur Cultural Society",
+      attendees: 3000,
+      rating: 4.6,
+      featured: true,
+      tags: ["Autumn", "Cultural", "Free", "Community"],
+      eventType: "Festival",
+      culturalSignificance: "Celebrates the harvest season and autumn traditions of Jharkhand.",
+      activities: ["Cultural Performances", "Traditional Music", "Local Food Stalls", "Art Exhibitions", "Cultural Games"],
+      duration: "10 Hours",
+      ageGroup: "All Ages",
+      language: "Hindi, English"
+    },
+    {
+      id: 30,
+      title: "Monsoon Nature Photography",
+      date: "2024-09-10",
+      time: "06:00 AM - 06:00 PM",
+      location: "Betla National Park",
+      category: "Workshop",
+      price: "₹1,500",
+      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop&q=80",
+      description: "Capture the beauty of monsoon season in Jharkhand's national parks",
+      organizer: "Wildlife Photography Club",
+      attendees: 15,
+      rating: 4.8,
+      featured: false,
+      tags: ["Monsoon", "Photography", "Nature", "Wildlife"],
+      eventType: "Workshop",
+      culturalSignificance: "Promotes nature conservation through photography during the monsoon season.",
+      activities: ["Photography Techniques", "Wildlife Spotting", "Nature Walk", "Photo Review", "Conservation Talk"],
+      duration: "12 Hours",
+      ageGroup: "18+",
+      language: "Hindi, English"
     }
   ];
 
@@ -647,14 +758,18 @@ const Events = () => {
     return eventsList.filter(event => {
       const eventDate = new Date(event.date);
       const today = new Date();
+      // Set time to start of day for accurate comparison
+      today.setHours(0, 0, 0, 0);
+      eventDate.setHours(0, 0, 0, 0);
       
       if (activeTab === "upcoming") {
         return eventDate >= today;
       } else if (activeTab === "past") {
         return eventDate < today;
-      } else {
+      } else if (activeTab === "featured") {
         return event.featured;
       }
+      return true; // Default case
     });
   };
 
@@ -726,9 +841,27 @@ const Events = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <TabsList className="grid w-full sm:w-auto grid-cols-3">
-              <TabsTrigger value="featured">Featured</TabsTrigger>
-              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-              <TabsTrigger value="past">Past Events</TabsTrigger>
+              <TabsTrigger value="featured">
+                Featured ({events.filter(e => e.featured).length})
+              </TabsTrigger>
+              <TabsTrigger value="upcoming">
+                Upcoming ({events.filter(e => {
+                  const eventDate = new Date(e.date);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  eventDate.setHours(0, 0, 0, 0);
+                  return eventDate >= today;
+                }).length})
+              </TabsTrigger>
+              <TabsTrigger value="past">
+                Past Events ({events.filter(e => {
+                  const eventDate = new Date(e.date);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  eventDate.setHours(0, 0, 0, 0);
+                  return eventDate < today;
+                }).length})
+              </TabsTrigger>
             </TabsList>
             
             <div className="flex gap-2 w-full sm:w-auto">
@@ -750,8 +883,30 @@ const Events = () => {
           </div>
 
           <TabsContent value={activeTab}>
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-              {filteredEvents.map((event) => {
+            {filteredEvents.length === 0 ? (
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  No {activeTab === "featured" ? "Featured" : activeTab === "upcoming" ? "Upcoming" : "Past"} Events Found
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  {activeTab === "featured" 
+                    ? "No featured events available at the moment. Check back later for exciting featured events!"
+                    : activeTab === "upcoming"
+                    ? "No upcoming events scheduled. Stay tuned for new events coming soon!"
+                    : "No past events to display. Check out our upcoming events!"
+                  }
+                </p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setActiveTab(activeTab === "past" ? "upcoming" : "featured")}
+                >
+                  View {activeTab === "past" ? "Upcoming" : "Featured"} Events
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                {filteredEvents.map((event) => {
                 const EventIcon = getEventIcon(event.category);
                 return (
                   <Dialog key={event.id}>
@@ -1114,7 +1269,8 @@ const Events = () => {
                   </Dialog>
                 );
               })}
-            </div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
@@ -1128,85 +1284,13 @@ const Events = () => {
         {/* Event Calendar Section */}
         {showCalendar && (
           <section className="mt-16">
-            <h2 className="text-3xl font-bold text-foreground mb-8">Event Calendar</h2>
-            <Card className="travel-card">
-              <CardContent className="p-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Calendar View */}
-                  <div>
-                    <h3 className="text-xl font-semibold text-foreground mb-4">March 2025</h3>
-                    <div className="grid grid-cols-7 gap-1 mb-4">
-                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} className="text-center text-sm font-medium text-muted-foreground p-2">
-                          {day}
-                        </div>
-                      ))}
-                      {Array.from({ length: 31 }, (_, i) => {
-                        const day = i + 1;
-                        const dayDate = `2025-03-${day.toString().padStart(2, '0')}`;
-                        const hasEvent = events.some(event => event.date === dayDate);
-                        const isSelected = selectedDate === dayDate;
-                        return (
-                          <div 
-                            key={day} 
-                            className={`text-center p-2 rounded-lg cursor-pointer transition-all ${
-                              isSelected 
-                                ? 'bg-primary text-primary-foreground font-semibold' 
-                                : hasEvent 
-                                  ? 'bg-primary/10 text-primary font-semibold hover:bg-primary/20' 
-                                  : 'hover:bg-accent'
-                            }`}
-                            onClick={() => setSelectedDate(dayDate)}
-                          >
-                            {day}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Event Details for Selected Date */}
-                  <div>
-                    <h3 className="text-xl font-semibold text-foreground mb-4">Events on {new Date(selectedDate).toLocaleDateString('en-IN', { 
-                      day: 'numeric', 
-                      month: 'long', 
-                      year: 'numeric' 
-                    })}</h3>
-                    <div className="space-y-4">
-                      {events.filter(event => event.date === selectedDate).map(event => (
-                        <Card key={event.id} className="border-l-4 border-l-primary">
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-foreground">{event.title}</h4>
-                                <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
-                                <div className="flex items-center mt-2 space-x-4 text-xs text-muted-foreground">
-                                  <span className="flex items-center">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    {event.time}
-                                  </span>
-                                  <span className="flex items-center">
-                                    <MapPin className="h-3 w-3 mr-1" />
-                                    {event.location}
-                                  </span>
-                                  <span className="flex items-center">
-                                    <Users className="h-3 w-3 mr-1" />
-                                    {event.attendees} going
-                                  </span>
-                                </div>
-                              </div>
-                              <Badge className="bg-primary/10 text-primary">
-                                {event.price}
-                              </Badge>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <Calendar2025 
+              events={events} 
+              onEventClick={(event) => {
+                setSelectedEvent(event);
+                setShowBookingModal(true);
+              }}
+            />
           </section>
         )}
 

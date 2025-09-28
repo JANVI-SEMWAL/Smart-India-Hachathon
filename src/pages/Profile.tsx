@@ -34,6 +34,10 @@ const Profile = () => {
     location?: string;
     address?: string;
     gender?: string;
+    dateOfBirth?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    emergencyContactRelation?: string;
     profileImage?: string;
     bio?: string;
     interests?: string[];
@@ -47,6 +51,10 @@ const Profile = () => {
     location: "",
     address: "",
     gender: "",
+    dateOfBirth: "",
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    emergencyContactRelation: "",
     bio: "",
     interests: [] as string[]
   });
@@ -64,6 +72,10 @@ const Profile = () => {
           location: user.location || "",
           address: user.address || "",
           gender: user.gender || "",
+          dateOfBirth: user.dateOfBirth || "",
+          emergencyContactName: user.emergencyContactName || "",
+          emergencyContactPhone: user.emergencyContactPhone || "",
+          emergencyContactRelation: user.emergencyContactRelation || "",
           bio: user.bio || "",
           interests: user.interests || []
         });
@@ -90,6 +102,12 @@ const Profile = () => {
         email: authUser.email || "",
         phone: authUser.phone || "",
         location: authUser.location || "",
+        address: authUser.address || "",
+        gender: authUser.gender || "",
+        dateOfBirth: authUser.dateOfBirth || "",
+        emergencyContactName: authUser.emergencyContactName || "",
+        emergencyContactPhone: authUser.emergencyContactPhone || "",
+        emergencyContactRelation: authUser.emergencyContactRelation || "",
         bio: authUser.bio || "",
         interests: authUser.interests || []
       });
@@ -163,6 +181,15 @@ const Profile = () => {
                       authUser.fullName || "Esha Rawat"
                     )}
                   </h2>
+                  
+                  {/* Date of Birth */}
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Born: {authUser.dateOfBirth ? new Date(authUser.dateOfBirth).toLocaleDateString('en-IN', { 
+                      day: 'numeric', 
+                      month: 'long', 
+                      year: 'numeric' 
+                    }) : "Not specified"}
+                  </p>
                   
                   {/* Role Badge */}
                   <Badge className="bg-green-100 text-green-700 border-green-200 mb-4">
@@ -255,7 +282,22 @@ const Profile = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Date of Birth</p>
-                      <p className="text-foreground font-medium">2025-09-10</p>
+                      <p className="text-foreground font-medium">
+                        {isEditing ? (
+                          <Input
+                            type="date"
+                            value={editForm.dateOfBirth}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                            className="mt-1"
+                          />
+                        ) : (
+                          authUser.dateOfBirth ? new Date(authUser.dateOfBirth).toLocaleDateString('en-IN', { 
+                            day: 'numeric', 
+                            month: 'long', 
+                            year: 'numeric' 
+                          }) : "Not specified"
+                        )}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Role</p>
@@ -346,18 +388,56 @@ const Profile = () => {
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Name</p>
-                      <p className="text-foreground font-medium">98765432</p>
+                      <p className="text-foreground font-medium">
+                        {isEditing ? (
+                          <Input
+                            value={editForm.emergencyContactName}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, emergencyContactName: e.target.value }))}
+                            className="mt-1"
+                          />
+                        ) : (
+                          authUser.emergencyContactName || "Not specified"
+                        )}
+                      </p>
                     </div>
                     <div className="flex items-center">
                       <Phone className="h-4 w-4 mr-3 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Phone</p>
-                        <p className="text-foreground font-medium">08218007264</p>
+                        <p className="text-foreground font-medium">
+                          {isEditing ? (
+                            <Input
+                              value={editForm.emergencyContactPhone}
+                              onChange={(e) => setEditForm(prev => ({ ...prev, emergencyContactPhone: e.target.value }))}
+                              className="mt-1"
+                            />
+                          ) : (
+                            authUser.emergencyContactPhone || "Not specified"
+                          )}
+                        </p>
                       </div>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Relation</p>
-                      <p className="text-foreground font-medium">Father</p>
+                      <p className="text-foreground font-medium">
+                        {isEditing ? (
+                          <select
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            value={editForm.emergencyContactRelation}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, emergencyContactRelation: e.target.value }))}
+                          >
+                            <option value="">Select Relationship</option>
+                            <option value="Father">Father</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Spouse">Spouse</option>
+                            <option value="Sibling">Sibling</option>
+                            <option value="Friend">Friend</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        ) : (
+                          authUser.emergencyContactRelation || "Not specified"
+                        )}
+                      </p>
                     </div>
                   </div>
                 </CardContent>

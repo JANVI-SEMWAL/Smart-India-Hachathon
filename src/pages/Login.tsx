@@ -52,7 +52,18 @@ const Login = () => {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const canResend = useMemo(() => secondsLeft <= 0, [secondsLeft]);
 
-  const [touristForm, setTouristForm] = useState({ fullName: "", email: "", phone: "", address: "", gender: "", password: "" });
+  const [touristForm, setTouristForm] = useState({ 
+    fullName: "", 
+    email: "", 
+    phone: "", 
+    address: "", 
+    gender: "", 
+    dateOfBirth: "", 
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    emergencyContactRelation: "",
+    password: "" 
+  });
   const [artisanForm, setArtisanForm] = useState({
     fullName: "",
     businessName: "",
@@ -60,10 +71,26 @@ const Login = () => {
     phone: "",
     address: "",
     gender: "",
+    dateOfBirth: "",
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    emergencyContactRelation: "",
     aadharNumber: "",
     password: "",
   });
-  const [adminForm, setAdminForm] = useState({ fullName: "", email: "", phone: "", address: "", gender: "", employeeId: "", password: "" });
+  const [adminForm, setAdminForm] = useState({ 
+    fullName: "", 
+    email: "", 
+    phone: "", 
+    address: "", 
+    gender: "", 
+    dateOfBirth: "", 
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    emergencyContactRelation: "",
+    employeeId: "", 
+    password: "" 
+  });
   const [loginForm, setLoginForm] = useState({ identifier: "", password: "" });
 
   useEffect(() => {
@@ -165,7 +192,11 @@ const Login = () => {
           email: res.email, 
           phone: res.phone,
           address: res.address,
-          gender: res.gender
+          gender: res.gender,
+          dateOfBirth: res.dateOfBirth,
+          emergencyContactName: res.emergencyContactName,
+          emergencyContactPhone: res.emergencyContactPhone,
+          emergencyContactRelation: res.emergencyContactRelation
         })
       );
       navigate("/");
@@ -387,6 +418,51 @@ const Login = () => {
                               </select>
                             </div>
                             <div className="space-y-2">
+                              <Label>Date of Birth</Label>
+                              <Input
+                                type="date"
+                                value={touristForm.dateOfBirth}
+                                onChange={(e) => setTouristForm({ ...touristForm, dateOfBirth: e.target.value })}
+                              />
+                            </div>
+                            
+                            {/* Emergency Contact Section */}
+                            <div className="space-y-4 pt-4 border-t border-border">
+                              <h4 className="text-sm font-medium text-foreground">Emergency Contact Information</h4>
+                              <div className="space-y-2">
+                                <Label>Emergency Contact Name</Label>
+                                <Input
+                                  placeholder="Full Name"
+                                  value={touristForm.emergencyContactName}
+                                  onChange={(e) => setTouristForm({ ...touristForm, emergencyContactName: e.target.value })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Emergency Contact Phone</Label>
+                                <Input
+                                  placeholder="98765xxxxx"
+                                  value={touristForm.emergencyContactPhone}
+                                  onChange={(e) => setTouristForm({ ...touristForm, emergencyContactPhone: e.target.value })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Relationship</Label>
+                                <select
+                                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                  value={touristForm.emergencyContactRelation}
+                                  onChange={(e) => setTouristForm({ ...touristForm, emergencyContactRelation: e.target.value })}
+                                >
+                                  <option value="">Select Relationship</option>
+                                  <option value="Father">Father</option>
+                                  <option value="Mother">Mother</option>
+                                  <option value="Spouse">Spouse</option>
+                                  <option value="Sibling">Sibling</option>
+                                  <option value="Friend">Friend</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
                               <Label>Password</Label>
                               <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -404,7 +480,7 @@ const Login = () => {
                             </div>
 
                             {!otpSent ? (
-                              <Button onClick={handleSendOtp} disabled={loading || !touristForm.email || !touristForm.address || !touristForm.gender || !passwordValid(touristForm.password)} className="w-full" variant="cultural">
+                              <Button onClick={handleSendOtp} disabled={loading || !touristForm.email || !touristForm.address || !touristForm.gender || !touristForm.dateOfBirth || !touristForm.emergencyContactName || !touristForm.emergencyContactPhone || !touristForm.emergencyContactRelation || !passwordValid(touristForm.password)} className="w-full" variant="cultural">
                                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Email OTP"}
                               </Button>
                             ) : (
@@ -477,6 +553,51 @@ const Login = () => {
                               </select>
                             </div>
                             <div className="space-y-2">
+                              <Label>Date of Birth</Label>
+                              <Input
+                                type="date"
+                                value={artisanForm.dateOfBirth}
+                                onChange={(e) => setArtisanForm({ ...artisanForm, dateOfBirth: e.target.value })}
+                              />
+                            </div>
+                            
+                            {/* Emergency Contact Section */}
+                            <div className="space-y-4 pt-4 border-t border-border">
+                              <h4 className="text-sm font-medium text-foreground">Emergency Contact Information</h4>
+                              <div className="space-y-2">
+                                <Label>Emergency Contact Name</Label>
+                                <Input
+                                  placeholder="Full Name"
+                                  value={artisanForm.emergencyContactName}
+                                  onChange={(e) => setArtisanForm({ ...artisanForm, emergencyContactName: e.target.value })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Emergency Contact Phone</Label>
+                                <Input
+                                  placeholder="98765xxxxx"
+                                  value={artisanForm.emergencyContactPhone}
+                                  onChange={(e) => setArtisanForm({ ...artisanForm, emergencyContactPhone: e.target.value })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Relationship</Label>
+                                <select
+                                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                  value={artisanForm.emergencyContactRelation}
+                                  onChange={(e) => setArtisanForm({ ...artisanForm, emergencyContactRelation: e.target.value })}
+                                >
+                                  <option value="">Select Relationship</option>
+                                  <option value="Father">Father</option>
+                                  <option value="Mother">Mother</option>
+                                  <option value="Spouse">Spouse</option>
+                                  <option value="Sibling">Sibling</option>
+                                  <option value="Friend">Friend</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
                               <Label>Aadhar Number (Required for Artisan Registration)</Label>
                               <Input 
                                 placeholder="1234 5678 9012" 
@@ -506,7 +627,7 @@ const Login = () => {
                             </div>
 
                             {!otpSent ? (
-                              <Button onClick={handleSendOtp} disabled={loading || !artisanForm.phone || !artisanForm.gender || !passwordValid(artisanForm.password) || !artisanForm.aadharNumber} className="w-full" variant="cultural">
+                              <Button onClick={handleSendOtp} disabled={loading || !artisanForm.phone || !artisanForm.gender || !artisanForm.dateOfBirth || !artisanForm.emergencyContactName || !artisanForm.emergencyContactPhone || !artisanForm.emergencyContactRelation || !passwordValid(artisanForm.password) || !artisanForm.aadharNumber} className="w-full" variant="cultural">
                                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Phone OTP (Aadhar Verified)"}
                               </Button>
                             ) : (
@@ -574,6 +695,51 @@ const Login = () => {
                                 <option value="prefer-not-to-say">Prefer not to say</option>
                               </select>
                             </div>
+                            <div className="space-y-2">
+                              <Label>Date of Birth</Label>
+                              <Input
+                                type="date"
+                                value={adminForm.dateOfBirth}
+                                onChange={(e) => setAdminForm({ ...adminForm, dateOfBirth: e.target.value })}
+                              />
+                            </div>
+                            
+                            {/* Emergency Contact Section */}
+                            <div className="space-y-4 pt-4 border-t border-border">
+                              <h4 className="text-sm font-medium text-foreground">Emergency Contact Information</h4>
+                              <div className="space-y-2">
+                                <Label>Emergency Contact Name</Label>
+                                <Input
+                                  placeholder="Full Name"
+                                  value={adminForm.emergencyContactName}
+                                  onChange={(e) => setAdminForm({ ...adminForm, emergencyContactName: e.target.value })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Emergency Contact Phone</Label>
+                                <Input
+                                  placeholder="98765xxxxx"
+                                  value={adminForm.emergencyContactPhone}
+                                  onChange={(e) => setAdminForm({ ...adminForm, emergencyContactPhone: e.target.value })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Relationship</Label>
+                                <select
+                                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                  value={adminForm.emergencyContactRelation}
+                                  onChange={(e) => setAdminForm({ ...adminForm, emergencyContactRelation: e.target.value })}
+                                >
+                                  <option value="">Select Relationship</option>
+                                  <option value="Father">Father</option>
+                                  <option value="Mother">Mother</option>
+                                  <option value="Spouse">Spouse</option>
+                                  <option value="Sibling">Sibling</option>
+                                  <option value="Friend">Friend</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div className="space-y-2">
                                 <Label>Employee ID</Label>
@@ -598,7 +764,7 @@ const Login = () => {
                             </div>
 
                             {!otpSent ? (
-                              <Button onClick={handleSendOtp} disabled={loading || !adminForm.email || !adminForm.address || !adminForm.gender || !passwordValid(adminForm.password)} className="w-full" variant="cultural">
+                              <Button onClick={handleSendOtp} disabled={loading || !adminForm.email || !adminForm.address || !adminForm.gender || !adminForm.dateOfBirth || !adminForm.emergencyContactName || !adminForm.emergencyContactPhone || !adminForm.emergencyContactRelation || !passwordValid(adminForm.password)} className="w-full" variant="cultural">
                                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Email Verification"}
                               </Button>
                             ) : (

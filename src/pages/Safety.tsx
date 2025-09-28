@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,16 +41,45 @@ import {
 
 const Safety = () => {
   const [sosActive, setSosActive] = useState(false);
-  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([
-    { id: 1, name: "Family Contact", number: "+91 98765 43210", relationship: "Father" },
-    { id: 2, name: "Friend Contact", number: "+91 87654 32109", relationship: "Best Friend" }
-  ]);
+  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
   const [showAddContact, setShowAddContact] = useState(false);
   const [newContact, setNewContact] = useState({ name: "", number: "", relationship: "" });
   const [locationSharing, setLocationSharing] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
   const [sosHistory, setSosHistory] = useState<SOSAlert[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Load emergency contacts from localStorage on component mount
+  useEffect(() => {
+    try {
+      const authUser = localStorage.getItem("auth_user");
+      let contacts: EmergencyContact[] = [];
+      
+      if (authUser) {
+        const user = JSON.parse(authUser);
+        if (user.emergencyContactName && user.emergencyContactPhone && user.emergencyContactRelation) {
+          const primaryContact: EmergencyContact = {
+            id: 1,
+            name: user.emergencyContactName,
+            number: user.emergencyContactPhone,
+            relationship: user.emergencyContactRelation
+          };
+          contacts.push(primaryContact);
+        }
+      }
+      
+      // Load additional contacts
+      const additionalContacts = localStorage.getItem("additional_emergency_contacts");
+      if (additionalContacts) {
+        const parsed = JSON.parse(additionalContacts);
+        contacts = [...contacts, ...parsed];
+      }
+      
+      setEmergencyContacts(contacts);
+    } catch (error) {
+      console.error("Error loading emergency contacts:", error);
+    }
+  }, []);
 
   const emergencyServices = [
     {
@@ -189,14 +218,38 @@ const Safety = () => {
         id: Date.now(),
         ...newContact
       };
-      setEmergencyContacts([...emergencyContacts, contact]);
+      const updatedContacts = [...emergencyContacts, contact];
+      setEmergencyContacts(updatedContacts);
+      
+      // Save to localStorage
+      try {
+        const authUser = localStorage.getItem("auth_user");
+        if (authUser) {
+          const user = JSON.parse(authUser);
+          // Store additional contacts in a separate key
+          localStorage.setItem("additional_emergency_contacts", JSON.stringify(updatedContacts.slice(1)));
+        }
+      } catch (error) {
+        console.error("Error saving emergency contacts:", error);
+      }
+      
       setNewContact({ name: "", number: "", relationship: "" });
       setShowAddContact(false);
     }
   };
 
   const removeEmergencyContact = (id: number) => {
-    setEmergencyContacts(emergencyContacts.filter(contact => contact.id !== id));
+    const updatedContacts = emergencyContacts.filter(contact => contact.id !== id);
+    setEmergencyContacts(updatedContacts);
+    
+    // Update localStorage
+    try {
+      // Only save additional contacts (skip the primary contact from user profile)
+      const additionalContacts = updatedContacts.slice(1);
+      localStorage.setItem("additional_emergency_contacts", JSON.stringify(additionalContacts));
+    } catch (error) {
+      console.error("Error updating emergency contacts:", error);
+    }
   };
 
   const handleShareLocation = async () => {
